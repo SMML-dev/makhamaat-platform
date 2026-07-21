@@ -3,7 +3,7 @@ import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class MailService {
-  private transporter?: nodemailer.Transporter;
+  private transporter: nodemailer.Transporter;
   private readonly logger = new Logger(MailService.name);
 
   constructor() {
@@ -33,8 +33,17 @@ export class MailService {
         });
         this.logger.log(`MailService initialized with SMTP (${host}:${port}). Mode: ${port === 465 ? 'SSL' : 'STARTTLS'}`);
       } else {
-        this.transporter = undefined;
-        this.logger.warn('MailService not initialized: no SMTP_PASS environment variable found.');
+        // Fallback or development mock
+        this.transporter = nodemailer.createTransport({
+          host: 'smtp.resend.com',
+          port: 465,
+          secure: true,
+          auth: {
+            user: 'resend',
+            pass: 're_ebTqwE8C_MYDXtTxtoRY4ByKYhLJAkreL', 
+          },
+        });
+        this.logger.warn('MailService using Resend fallback (No SMTP_PASS found).');
       }
     } catch (error) {
       this.logger.error('Failed to initialize Nodemailer', error);
@@ -42,11 +51,6 @@ export class MailService {
   }
 
   async sendResetOtpEmail(userEmail: string, otp: string): Promise<boolean> {
-    if (!this.transporter) {
-      this.logger.warn(`Cannot send OTP email to ${userEmail}: mail transport not configured.`);
-      return false;
-    }
-
     try {
       this.logger.log(`Sending Platform Reset OTP to ${userEmail}...`);
       
@@ -77,11 +81,6 @@ export class MailService {
   }
 
   async sendPasswordResetEmail(userEmail: string, otp: string): Promise<boolean> {
-    if (!this.transporter) {
-      this.logger.warn(`Cannot send password reset email to ${userEmail}: mail transport not configured.`);
-      return false;
-    }
-
     try {
       this.logger.log(`Sending Password Reset OTP to ${userEmail}...`);
       
@@ -117,11 +116,6 @@ export class MailService {
   }
 
   async sendContactNotification(contactData: { sender: string; email: string; subject: string; content: string }): Promise<boolean> {
-    if (!this.transporter) {
-      this.logger.warn('Cannot send contact notification: mail transport not configured.');
-      return false;
-    }
-
     try {
       const adminEmail = process.env.ADMIN_EMAIL || 'contact@mbc-suarl.com';
       this.logger.log(`Sending Contact Notification to ${adminEmail}...`);

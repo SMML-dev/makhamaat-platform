@@ -3,6 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
 import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
+import { senegalMarketData } from '../data/senegalMarketData';
 import { authService, usersService, systemService, productsService, activitiesService, messagesService } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import jsPDF from 'jspdf';
@@ -65,6 +66,12 @@ const SuperAdminDashboard = () => {
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [editGoalValue, setEditGoalValue] = useState(revenueGoal.toString());
   
+  const [logisticsRevenueRate, setLogisticsRevenueRate] = useState<number>(() => parseFloat(localStorage.getItem('makhamaat_logistics_revenue_rate') || '0.15'));
+  const [logisticsStockRate, setLogisticsStockRate] = useState<number>(() => parseFloat(localStorage.getItem('makhamaat_logistics_stock_rate') || '0.05'));
+  const [isEditingLogistics, setIsEditingLogistics] = useState(false);
+  const [editLogisticsRevenueRate, setEditLogisticsRevenueRate] = useState(() => (logisticsRevenueRate * 100).toString());
+  const [editLogisticsStockRate, setEditLogisticsStockRate] = useState(() => (logisticsStockRate * 100).toString());
+
   const [isEditingProjections, setIsEditingProjections] = useState(false);
   const [projectionsData, setProjectionsData] = useState(() => {
     const saved = localStorage.getItem('makhamaat_projections');
@@ -195,6 +202,24 @@ const SuperAdminDashboard = () => {
       setEditGoalValue(revenueGoal.toString());
     }
     setIsEditingGoal(false);
+  };
+
+  const handleSaveLogisticsRates = () => {
+    const revRate = parseFloat(editLogisticsRevenueRate) / 100;
+    const stockRate = parseFloat(editLogisticsStockRate) / 100;
+    if (!isNaN(revRate) && revRate >= 0) {
+      setLogisticsRevenueRate(revRate);
+      localStorage.setItem('makhamaat_logistics_revenue_rate', revRate.toString());
+    } else {
+      setEditLogisticsRevenueRate((logisticsRevenueRate * 100).toString());
+    }
+    if (!isNaN(stockRate) && stockRate >= 0) {
+      setLogisticsStockRate(stockRate);
+      localStorage.setItem('makhamaat_logistics_stock_rate', stockRate.toString());
+    } else {
+      setEditLogisticsStockRate((logisticsStockRate * 100).toString());
+    }
+    setIsEditingLogistics(false);
   };
 
   const currentUser = authService.getCurrentUser();
@@ -483,7 +508,7 @@ const SuperAdminDashboard = () => {
   const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
   const revenueGoalMatch = Math.min(100, (currentRevenue / revenueGoal) * 100);
 
-  const logisticsCosts = currentRevenue * 0.15 + (totalStockValue / 1000000) * 0.05;
+  const logisticsCosts = currentRevenue * logisticsRevenueRate + (totalStockValue / 1000000) * logisticsStockRate;
   const operatingMargin = currentRevenue > 0 ? ((currentRevenue - logisticsCosts) / currentRevenue) * 100 : 0;
 
   const handleExport = () => {
@@ -875,7 +900,60 @@ const SuperAdminDashboard = () => {
               </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <div className='bg-white p-6 rounded-2xl shadow-sm border border-gray-100'>
+              {isEditingLogistics ? (
+                <div className='flex flex-col md:flex-row gap-6 items-end'>
+                  <div className='flex-1'>
+                    <label className='block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2'>{t('superadmin.logistics_revenue_rate', 'Revenue rate')}</label>
+                    <div className='flex items-center gap-2'>
+                      <input
+                        type='number'
+                        value={editLogisticsRevenueRate}
+                        onChange={(e) => setEditLogisticsRevenueRate(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveLogisticsRates(); if (e.key === 'Escape') { setIsEditingLogistics(false); setEditLogisticsRevenueRate((logisticsRevenueRate * 100).toString()); setEditLogisticsStockRate((logisticsStockRate * 100).toString()); } }}
+                        className='w-28 border border-gray-200 rounded-xl px-3 py-2 font-bold text-brand-dark focus:ring-2 focus:ring-brand-green focus:outline-none'
+                      />
+                      <span className='text-sm font-bold text-gray-400'>%</span>
+                    </div>
+                  </div>
+                  <div className='flex-1'>
+                    <label className='block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-2'>{t('superadmin.logistics_stock_rate', 'Stock value rate')}</label>
+                    <div className='flex items-center gap-2'>
+                      <input
+                        type='number'
+                        value={editLogisticsStockRate}
+                        onChange={(e) => setEditLogisticsStockRate(e.target.value)}
+                        onKeyDown={(e) => { if (e.key === 'Enter') handleSaveLogisticsRates(); if (e.key === 'Escape') { setIsEditingLogistics(false); setEditLogisticsRevenueRate((logisticsRevenueRate * 100).toString()); setEditLogisticsStockRate((logisticsStockRate * 100).toString()); } }}
+                        className='w-28 border border-gray-200 rounded-xl px-3 py-2 font-bold text-brand-dark focus:ring-2 focus:ring-brand-green focus:outline-none'
+                      />
+                      <span className='text-sm font-bold text-gray-400'>%</span>
+                    </div>
+                  </div>
+                  <div className='flex gap-2'>
+                    <button onClick={handleSaveLogisticsRates} className='bg-brand-green hover:bg-brand-green/90 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2'>
+                      <Check size={14} className='stroke-[3px]' /> {t('common.save', 'Save')}
+                    </button>
+                    <button onClick={() => { setIsEditingLogistics(false); setEditLogisticsRevenueRate((logisticsRevenueRate * 100).toString()); setEditLogisticsStockRate((logisticsStockRate * 100).toString()); }} className='bg-gray-100 hover:bg-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all'>
+                      {t('common.cancel', 'Cancel')}
+                    </button>
+                  </div>
+                </div>
+              ) : (
+                <div className='flex flex-col md:flex-row md:items-center justify-between gap-4'>
+                  <div>
+                    <h3 className='text-lg font-black text-brand-dark'>{t('superadmin.logistics_settings', 'Logistics cost calculation')}</h3>
+                    <p className='text-sm text-gray-500 mt-1'>
+                      {t('superadmin.logistics_revenue_rate', 'Revenue rate')}: <span className='font-bold text-brand-dark'>{(logisticsRevenueRate * 100).toFixed(0)}%</span> - {t('superadmin.logistics_stock_rate', 'Stock value rate')}: <span className='font-bold text-brand-dark'>{(logisticsStockRate * 100).toFixed(0)}%</span>
+                    </p>
+                  </div>
+                  <button onClick={() => { setIsEditingLogistics(true); setEditLogisticsRevenueRate((logisticsRevenueRate * 100).toString()); setEditLogisticsStockRate((logisticsStockRate * 100).toString()); }} className='bg-brand-green/10 hover:bg-brand-green/20 text-brand-green px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2'>
+                    <Edit2 size={14} /> {t('common.edit', 'Edit')}
+                  </button>
+                </div>
+              )}
+            </div>
+
+            <div className='grid grid-cols-1 md:grid-cols-3 gap-6'>
               <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-sm border border-gray-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
                 <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-700 pointer-events-none"><DollarSign size={80} /></div>
                 <div className="w-12 h-12 rounded-xl bg-green-100 text-green-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
@@ -2208,39 +2286,17 @@ const SuperAdminDashboard = () => {
   );
 };
 
-const MarketPriceComparison = ({ t, isLoadingMarketPrices, onRefresh, i18n, marketPriceData }: any) => {
+const MarketPriceComparison = ({ t, isLoadingMarketPrices, onRefresh, i18n }: any) => {
   const [selectedMarket, setSelectedMarket] = useState<any>(null);
 
-  const marketsWithProducts = (() => {
-    const markets: Record<string, any> = {};
-    (marketPriceData || []).forEach((product: any) => {
-      const productNameFr = product.translations?.fr?.name || product.name;
-      const productNameEn = product.translations?.en?.name || product.name;
-      (product.markets || []).forEach((m: any) => {
-        const marketId = m.marketName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-        if (!markets[m.marketName]) {
-          markets[m.marketName] = {
-            id: marketId,
-            name: m.marketName,
-            nameEn: m.marketName,
-            products: []
-          };
-        }
-        markets[m.marketName].products.push({
-          name: productNameFr,
-          nameEn: productNameEn,
-          price: m.price,
-          unit: 'KG',
-          lastUpdated: m.lastUpdated ? new Date(m.lastUpdated) : new Date()
-        });
-      });
-    });
-    return Object.values(markets).map((market: any) => ({
+  // Use real Senegalese market data instead of platform products
+  const marketsWithProducts = senegalMarketData.map((market) => {
+    return {
       ...market,
       displayName: t(`admin.market_${market.id}`, i18n.language === 'fr' ? market.name : market.nameEn),
       productCount: market.products.length
-    }));
-  })();
+    };
+  });
 
   return (
     <div className="space-y-8">

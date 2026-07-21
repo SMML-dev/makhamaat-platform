@@ -43,6 +43,7 @@ import {
   Moon,
   Truck
 } from "lucide-react";
+import { senegalMarketData } from "../data/senegalMarketData";
 import {
   authService,
   actorsService,
@@ -2830,39 +2831,17 @@ const StrategicTargets = ({ t, projectionsData, settings }: any) => {
   );
 };
 
-const MarketPriceComparison = ({ t, isLoadingMarketPrices, settings, onRefresh, i18n, marketPriceData }: any) => {
+const MarketPriceComparison = ({ t, isLoadingMarketPrices, settings, onRefresh, i18n }: any) => {
   const [selectedMarket, setSelectedMarket] = useState<any>(null);
 
-  const marketsWithProducts = (() => {
-    const markets: Record<string, any> = {};
-    (marketPriceData || []).forEach((product: any) => {
-      const productNameFr = product.translations?.fr?.name || product.name;
-      const productNameEn = product.translations?.en?.name || product.name;
-      (product.markets || []).forEach((m: any) => {
-        const marketId = m.marketName.toLowerCase().replace(/\s+/g, '_').replace(/[^a-z0-9_]/g, '');
-        if (!markets[m.marketName]) {
-          markets[m.marketName] = {
-            id: marketId,
-            name: m.marketName,
-            nameEn: m.marketName,
-            products: []
-          };
-        }
-        markets[m.marketName].products.push({
-          name: productNameFr,
-          nameEn: productNameEn,
-          price: m.price,
-          unit: 'KG',
-          lastUpdated: m.lastUpdated ? new Date(m.lastUpdated) : new Date()
-        });
-      });
-    });
-    return Object.values(markets).map((market: any) => ({
+  // Use real Senegalese market data instead of platform products
+  const marketsWithProducts = senegalMarketData.map((market) => {
+    return {
       ...market,
       displayName: t(`admin.market_${market.id}`, i18n.language === 'fr' ? market.name : market.nameEn),
       productCount: market.products.length
-    }));
-  })();
+    };
+  });
 
   return (
     <div className="space-y-8">
