@@ -72,14 +72,6 @@ const SuperAdminDashboard = () => {
   const [editLogisticsRevenueRate, setEditLogisticsRevenueRate] = useState(() => (logisticsRevenueRate * 100).toString());
   const [editLogisticsStockRate, setEditLogisticsStockRate] = useState(() => (logisticsStockRate * 100).toString());
 
-  const [dashboardObjectives, setDashboardObjectives] = useState(() => {
-    const saved = localStorage.getItem('makhamaat_dashboard_objectives');
-    if (saved) return JSON.parse(saved);
-    return { exportTarget: 1000, operatingMarginTarget: 20, warehouseCapacityTarget: 80 };
-  });
-  const [isEditingObjectives, setIsEditingObjectives] = useState(false);
-  const [editObjectives, setEditObjectives] = useState(() => ({ ...dashboardObjectives }));
-
   const [isEditingProjections, setIsEditingProjections] = useState(false);
   const [projectionsData, setProjectionsData] = useState(() => {
     const saved = localStorage.getItem('makhamaat_projections');
@@ -228,21 +220,6 @@ const SuperAdminDashboard = () => {
       setEditLogisticsStockRate((logisticsStockRate * 100).toString());
     }
     setIsEditingLogistics(false);
-  };
-
-  const handleUpdateObjective = (key: string, value: string) => {
-    setEditObjectives(prev => ({ ...prev, [key]: parseFloat(value) || 0 }));
-  };
-
-  const handleSaveObjectives = () => {
-    setDashboardObjectives(editObjectives);
-    localStorage.setItem('makhamaat_dashboard_objectives', JSON.stringify(editObjectives));
-    setIsEditingObjectives(false);
-  };
-
-  const handleCancelObjectives = () => {
-    setEditObjectives({ ...dashboardObjectives });
-    setIsEditingObjectives(false);
   };
 
   const currentUser = authService.getCurrentUser();
@@ -1008,76 +985,9 @@ const SuperAdminDashboard = () => {
                 </div>
                 <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.operating_margin', 'Marge Opérationnelle')}</h3>
                 <p className="text-4xl font-black text-brand-dark mb-2">{operatingMargin.toFixed(1)}<span className="text-3xl">%</span></p>
-                <div className={`flex items-center text-sm font-bold inline-flex px-2 py-1 rounded-md ${operatingMargin >= dashboardObjectives.operatingMarginTarget ? 'text-green-600 bg-green-50' : 'text-yellow-600 bg-yellow-50'}`}>
-                   <CheckCircle size={14} className="mr-1" /> {operatingMargin >= dashboardObjectives.operatingMarginTarget ? t('superadmin.excellent', 'Excellente') : t('superadmin.to_optimize', 'À Optimiser')}
+                <div className={`flex items-center text-sm font-bold inline-flex px-2 py-1 rounded-md ${operatingMargin >= 20 ? 'text-green-600 bg-green-50' : 'text-yellow-600 bg-yellow-50'}`}>
+                   <CheckCircle size={14} className="mr-1" /> {operatingMargin >= 20 ? t('superadmin.excellent', 'Excellente') : t('superadmin.to_optimize', 'À Optimiser')}
                 </div>
-              </div>
-            </div>
-
-            <div className='bg-white rounded-[2rem] shadow-sm border border-brand-green/20 p-8 overflow-hidden relative group'>
-              <div className='flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4'>
-                <div>
-                  <h3 className='text-2xl font-black text-brand-dark flex items-center gap-2'>
-                    <BarChart3 className='text-brand-green' /> {t('superadmin.objectives', 'Objectives')}
-                  </h3>
-                  <p className='text-gray-500 text-sm mt-1'>{t('superadmin.objectives_desc', 'Set your targets for the dashboard metrics.')}</p>
-                </div>
-                {isEditingObjectives ? (
-                  <div className='flex gap-2'>
-                    <button onClick={handleSaveObjectives} className='bg-brand-green hover:bg-brand-green/90 text-white px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2'>
-                      <Check size={14} className='stroke-[3px]' /> {t('common.save', 'Save')}
-                    </button>
-                    <button onClick={handleCancelObjectives} className='bg-gray-100 hover:bg-gray-200 text-gray-500 px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all'>
-                      {t('common.cancel', 'Cancel')}
-                    </button>
-                  </div>
-                ) : (
-                  <button onClick={() => setIsEditingObjectives(true)} className='bg-brand-green/10 hover:bg-brand-green/20 text-brand-green px-4 py-2.5 rounded-xl text-xs font-black uppercase tracking-widest transition-all flex items-center gap-2'>
-                    <Edit2 size={14} /> {t('common.edit', 'Edit')}
-                  </button>
-                )}
-              </div>
-              <div className='overflow-hidden rounded-2xl border border-gray-100 shadow-sm'>
-                <table className='w-full text-left text-sm'>
-                  <thead className='bg-gray-50 text-gray-500 font-bold'>
-                    <tr>
-                      <th className='px-4 py-3'>{t('superadmin.metric', 'Metric')}</th>
-                      <th className='px-4 py-3'>{t('superadmin.target', 'Target')}</th>
-                    </tr>
-                  </thead>
-                  <tbody className='divide-y divide-gray-100'>
-                    <tr className='hover:bg-gray-50/50 transition-colors'>
-                      <td className='px-4 py-3 font-bold text-brand-dark'>{t('superadmin.export_target', 'Export target (units)')}</td>
-                      <td className='px-4 py-3 font-black text-brand-dark'>
-                        {isEditingObjectives ? (
-                          <input type='number' value={editObjectives.exportTarget} onChange={(e) => handleUpdateObjective('exportTarget', e.target.value)} className='w-32 border border-gray-200 rounded-lg px-2 py-1 font-bold' />
-                        ) : (
-                          dashboardObjectives.exportTarget
-                        )}
-                      </td>
-                    </tr>
-                    <tr className='hover:bg-gray-50/50 transition-colors'>
-                      <td className='px-4 py-3 font-bold text-brand-dark'>{t('superadmin.operating_margin_target', 'Operating margin target (%)')}</td>
-                      <td className='px-4 py-3 font-black text-brand-dark'>
-                        {isEditingObjectives ? (
-                          <input type='number' value={editObjectives.operatingMarginTarget} onChange={(e) => handleUpdateObjective('operatingMarginTarget', e.target.value)} className='w-32 border border-gray-200 rounded-lg px-2 py-1 font-bold' />
-                        ) : (
-                          `${dashboardObjectives.operatingMarginTarget}%`
-                        )}
-                      </td>
-                    </tr>
-                    <tr className='hover:bg-gray-50/50 transition-colors'>
-                      <td className='px-4 py-3 font-bold text-brand-dark'>{t('superadmin.warehouse_capacity_target', 'Warehouse capacity target (%)')}</td>
-                      <td className='px-4 py-3 font-black text-brand-dark'>
-                        {isEditingObjectives ? (
-                          <input type='number' value={editObjectives.warehouseCapacityTarget} onChange={(e) => handleUpdateObjective('warehouseCapacityTarget', e.target.value)} className='w-32 border border-gray-200 rounded-lg px-2 py-1 font-bold' />
-                        ) : (
-                          `${dashboardObjectives.warehouseCapacityTarget}%`
-                        )}
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
               </div>
             </div>
 
