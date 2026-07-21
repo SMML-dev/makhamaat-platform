@@ -2,12 +2,13 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
+import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Target, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
 import { senegalMarketData } from '../data/senegalMarketData';
 import { authService, usersService, systemService, productsService, activitiesService, messagesService } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
+import ObjectivesTab from '../components/SuperAdmin/ObjectivesTab';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -1342,6 +1343,9 @@ const SuperAdminDashboard = () => {
           </motion.div>
         );
 
+      case 'objectives':
+        return <ObjectivesTab />;
+
       case 'dashboard':
       default:
         if (isDataLoading) {
@@ -1728,6 +1732,15 @@ const SuperAdminDashboard = () => {
               </div>
               <span>{t('superadmin.messages', 'Messagerie')}</span>
             </button>
+            <button
+              onClick={() => handleTabChange('objectives')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'objectives' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Target size={18} />
+              </div>
+              <span>{t('superadmin.objectives', 'Objectifs')}</span>
+            </button>
           </nav>
         </div>
         <div className="px-6 py-4 border-t border-gray-900/50">
@@ -1769,6 +1782,7 @@ const SuperAdminDashboard = () => {
                 {activeTab === 'finance' && t('superadmin.tab_finance', 'Performances Financières')}
                 {activeTab === 'logs' && t('superadmin.tab_logs', "Centre de Sécurité & Logs")}
                 {activeTab === 'messages' && t('superadmin.tab_messages', 'Messagerie Stratégique')}
+                {activeTab === 'objectives' && t('superadmin.tab_objectives', 'Objectifs Produits')}
               </h1>
               <p className="text-gray-500 text-sm font-medium mt-1">{t('admin.secure_access_subtitle', 'Vue Super Administrateur - Accès Complet Sécurisé')}</p>
             </div>

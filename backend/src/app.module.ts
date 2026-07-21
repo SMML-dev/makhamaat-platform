@@ -16,6 +16,7 @@ import { JwtAuthGuard } from './auth/guards/jwt-auth.guard';
 import { ServeStaticModule } from '@nestjs/serve-static';
 import { join } from 'path';
 import { PaymentModule } from './payment/payment.module';
+import { ObjectivesModule } from './objectives/objectives.module';
 
 @Module({
   imports: [
@@ -35,6 +36,7 @@ import { PaymentModule } from './payment/payment.module';
     MessagesModule,
     MailModule,
     PaymentModule,
+    ObjectivesModule,
   ],
   controllers: [AppController],
   providers: [
