@@ -73,6 +73,7 @@ import RotationConfirmModal from "../components/admin/modals/RotationConfirmModa
 import BroadcastModal from "../components/admin/modals/BroadcastModal";
 import QRCodeModal from "../components/admin/modals/QRCodeModal";
 import SparklineChart from "../components/admin/charts/SparklineChart";
+import ObjectivesTab from "../components/SuperAdmin/ObjectivesTab";
 
 interface Message {
   _id: string;
@@ -937,6 +938,7 @@ const AdminDashboard = () => {
               { id: "stock", icon: Package, label: t("admin.stock_mgmt") },
               { id: "clients", icon: Users, label: t("admin.actors") },
               { id: "targets", icon: Target, label: t("admin.targets_nav", "Objectifs") },
+              { id: "objectives", icon: Target, label: t("admin.objectives", "Objectives") },
               { id: "market-prices", icon: TrendingUp, label: t("admin.market_prices", "Marchés Sénégal") },
               {
                 id: "messages",
@@ -1125,6 +1127,7 @@ const AdminDashboard = () => {
               />}
               {activeTab === "clients" && <ActorManagement t={t} actors={actors} openProfile={openProfile} openContact={openContact} settings={{ ...settings, onAddActor: () => setShowNewActorModal(true) }} />}
               {activeTab === "targets" && <StrategicTargets t={t} projectionsData={projectionsData} settings={settings} />}
+              {activeTab === "objectives" && <ObjectivesTab readOnly />}
               {activeTab === "market-prices" && <MarketPriceComparison t={t} i18n={i18n} marketPriceData={marketPriceData} isLoadingMarketPrices={isLoadingMarketPrices} settings={settings} onRefresh={fetchMarketPriceData} />}
               {activeTab === "messages" && <CommunicationCenter t={t} messages={messages} messageFolder={messageFolder} setMessageFolder={setMessageFolder} onViewMessage={handleViewMessage} setShowBroadcastModal={setShowBroadcastModal} />}
               {activeTab === "settings" && <SettingsPanel t={t} i18n={i18n} settings={settings} setSettings={setSettings} setShow2FAModal={setShow2FAModal} setTwoFactorStep={setTwoFactorStep} setShowRotationModal={setShowRotationModal} setShowLogoutConfirm={setShowLogoutConfirm} showToast={showToast} />}

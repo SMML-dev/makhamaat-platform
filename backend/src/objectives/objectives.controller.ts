@@ -19,7 +19,7 @@ export class ObjectivesController {
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles(Role.SUPER_ADMIN)
+  @Roles(Role.SUPER_ADMIN, Role.ADMIN)
   @Get()
   findAll(@Query('product') product?: string) {
     return this.objectivesService.findAll({ product });

@@ -7,7 +7,7 @@ import api from '../../services/api';
 const typeOptions = ['sales', 'export', 'stock', 'production'];
 const statusOptions = ['pending', 'in_progress', 'completed', 'cancelled'];
 
-export default function ObjectivesTab() {
+export default function ObjectivesTab({ readOnly = false }: { readOnly?: boolean }) {
   const { t } = useTranslation();
   const [objectives, setObjectives] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
@@ -133,13 +133,15 @@ export default function ObjectivesTab() {
           </h2>
           <p className="text-gray-500 text-sm mt-1">{t('superadmin.objectives_desc', 'Définissez les attentes par produit : quantités, prix, délais, etc.')}</p>
         </div>
+        {!readOnly && (
         <button onClick={() => { if (showForm) resetForm(); else setShowForm(true); }} className="bg-brand-green hover:bg-brand-green/90 text-white px-4 py-2.5 rounded-xl text-sm font-black flex items-center gap-2 transition-all">
           {showForm ? <X size={18} /> : <Plus size={18} />}
           {showForm ? t('common.close', 'Fermer') : t('superadmin.add_objective', 'Ajouter un objectif')}
         </button>
+        )}
       </div>
 
-      {showForm && (
+      {showForm && !readOnly && (
         <form onSubmit={handleSubmit} className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100 space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
@@ -223,7 +225,7 @@ export default function ObjectivesTab() {
                   <th className="px-4 py-3">{t('superadmin.target_revenue', 'Revenu')}</th>
                   <th className="px-4 py-3">{t('superadmin.deadline', 'Date limite')}</th>
                   <th className="px-4 py-3">{t('superadmin.status', 'Statut')}</th>
-                  <th className="px-4 py-3">{t('superadmin.actions', 'Actions')}</th>
+                  {!readOnly && <th className="px-4 py-3">{t('superadmin.actions', 'Actions')}</th>}
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-100">
@@ -241,6 +243,7 @@ export default function ObjectivesTab() {
                         {(t(`superadmin.objective_status_${obj.status}`, obj.status) as string)}
                       </span>
                     </td>
+                    {!readOnly && (
                     <td className="px-4 py-3">
                       <div className="flex gap-2">
                         <button onClick={() => handleEdit(obj)} className="p-2 bg-brand-green/10 text-brand-green rounded-lg hover:bg-brand-green/20 transition-all">
@@ -251,12 +254,13 @@ export default function ObjectivesTab() {
                         </button>
                       </div>
                     </td>
+                    )}
                   </tr>
                 ))}
                 {objectives.length === 0 && (
                   <tr>
-                    <td colSpan={9} className="px-4 py-8 text-center text-gray-500 font-bold">
-                      {t('superadmin.no_objectives', 'Aucun objectif défini. Cliquez sur Ajouter pour créer le premier.')}
+                    <td colSpan={readOnly ? 8 : 9} className="px-4 py-8 text-center text-gray-500 font-bold">
+                      {readOnly ? t('superadmin.no_objectives', 'Aucun objectif défini.') : t('superadmin.no_objectives', 'Aucun objectif défini. Cliquez sur Ajouter pour créer le premier.')}
                     </td>
                   </tr>
                 )}
