@@ -18,6 +18,7 @@ export default function ObjectivesTab() {
     product: '',
     name: '',
     targetQuantity: '',
+    unit: 'kg',
     targetPrice: '',
     targetRevenue: '',
     deadline: '',
@@ -49,6 +50,7 @@ export default function ObjectivesTab() {
       product: '',
       name: '',
       targetQuantity: '',
+      unit: 'kg',
       targetPrice: '',
       targetRevenue: '',
       deadline: '',
@@ -71,6 +73,7 @@ export default function ObjectivesTab() {
       product: formData.product,
       name: formData.name,
       targetQuantity: Number(formData.targetQuantity) || 0,
+      unit: formData.unit,
       targetPrice: formData.targetPrice ? Number(formData.targetPrice) : undefined,
       targetRevenue: formData.targetRevenue ? Number(formData.targetRevenue) : undefined,
       deadline: new Date(formData.deadline).toISOString(),
@@ -97,6 +100,7 @@ export default function ObjectivesTab() {
       product: typeof obj.product === 'object' ? obj.product._id : obj.product,
       name: obj.name,
       targetQuantity: obj.targetQuantity.toString(),
+      unit: obj.unit || 'kg',
       targetPrice: obj.targetPrice?.toString() || '',
       targetRevenue: obj.targetRevenue?.toString() || '',
       deadline: obj.deadline ? new Date(obj.deadline).toISOString().split('T')[0] : '',
@@ -154,6 +158,10 @@ export default function ObjectivesTab() {
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('superadmin.target_quantity', 'Quantité cible')}</label>
               <input type="number" name="targetQuantity" value={formData.targetQuantity} onChange={handleChange} required min="0" className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-brand-dark focus:ring-2 focus:ring-brand-green focus:outline-none" />
+            </div>
+            <div>
+              <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('superadmin.unit', 'Unité')}</label>
+              <input type="text" name="unit" value={formData.unit} onChange={handleChange} placeholder={t('superadmin.unit_placeholder', 'Ex: kg, T, units') as string} className="w-full border border-gray-200 rounded-xl px-3 py-2 text-sm font-bold text-brand-dark focus:ring-2 focus:ring-brand-green focus:outline-none" />
             </div>
             <div>
               <label className="block text-[10px] font-black uppercase tracking-widest text-gray-400 mb-1">{t('superadmin.target_price', 'Prix cible (FCFA)')}</label>
@@ -224,7 +232,7 @@ export default function ObjectivesTab() {
                     <td className="px-4 py-3 font-bold text-brand-dark">{obj.product?.name || obj.product}</td>
                     <td className="px-4 py-3">{obj.name}</td>
                     <td className="px-4 py-3 capitalize">{(t(`superadmin.objective_type_${obj.type}`, obj.type) as string)}</td>
-                    <td className="px-4 py-3">{obj.targetQuantity}</td>
+                    <td className="px-4 py-3">{obj.targetQuantity} {obj.unit}</td>
                     <td className="px-4 py-3">{obj.targetPrice ?? '-'}</td>
                     <td className="px-4 py-3">{obj.targetRevenue ?? '-'}</td>
                     <td className="px-4 py-3">{obj.deadline ? new Date(obj.deadline).toLocaleDateString() : '-'}</td>

@@ -2,6 +2,7 @@ export class CreateObjectiveDto {
   product: string;
   name: string;
   targetQuantity: number;
+  unit?: string;
   targetPrice?: number;
   targetRevenue?: number;
   deadline: string;

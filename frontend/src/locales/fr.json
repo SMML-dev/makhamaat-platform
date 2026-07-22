@@ -840,6 +840,8 @@
     "select_product": "Choisir un produit",
     "objective_name": "Nom de l'objectif",
     "target_quantity": "Quantité cible",
+    "unit": "Unité",
+    "unit_placeholder": "Ex: kg, T, unités",
     "target_price": "Prix cible (FCFA)",
     "target_revenue": "Revenu cible (FCFA)",
     "deadline": "Date limite",

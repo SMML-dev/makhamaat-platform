@@ -28,6 +28,9 @@ export class Objective {
   @Prop({ required: true, min: 0 })
   targetQuantity: number;
 
+  @Prop({ default: 'kg' })
+  unit: string;
+
   @Prop({ min: 0 })
   targetPrice: number;
 
