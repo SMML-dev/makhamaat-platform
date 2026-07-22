@@ -30,17 +30,20 @@ export default function ObjectivesTab({ readOnly = false }: { readOnly?: boolean
   const fetchData = async () => {
     setLoading(true);
     try {
-      const [objRes, prodRes] = await Promise.all([
-        api.get('/objectives'),
-        api.get('/products'),
-      ]);
+      const objRes = await api.get('/objectives');
       setObjectives(objRes.data);
-      setProducts(prodRes.data);
     } catch (e) {
-      console.error(e);
-    } finally {
-      setLoading(false);
+      console.error('Failed to load objectives', e);
     }
+    if (!readOnly) {
+      try {
+        const prodRes = await api.get('/products');
+        setProducts(prodRes.data);
+      } catch (e) {
+        console.error('Failed to load products', e);
+      }
+    }
+    setLoading(false);
   };
 
   useEffect(() => { fetchData(); }, []);
