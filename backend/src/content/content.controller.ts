@@ -21,7 +21,7 @@ export class ContentController {
   @Roles(Role.SUPER_ADMIN)
   @Post()
   async upsert(@Body() dto: UpdateContentDto, @Req() req: any) {
-    return this.contentService.upsert(dto.key, dto.value, req.user?.userId);
+    return this.contentService.upsert(dto.key, { en: dto.en, fr: dto.fr }, req.user?.userId);
   }
 
   @UseGuards(JwtAuthGuard, RolesGuard)

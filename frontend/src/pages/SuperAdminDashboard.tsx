@@ -131,9 +131,13 @@ const SuperAdminDashboard = () => {
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
   const [saToast, setSaToast] = useState<string | null>(null);
-  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, string>>({});
+  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, { en?: string; fr?: string }>>({});
   const [homeContentLoading, setHomeContentLoading] = useState(false);
   const [homeContentSaving, setHomeContentSaving] = useState<string | null>(null);
+  const [homeContentDeleting, setHomeContentDeleting] = useState<string | null>(null);
+  const [newContentKey, setNewContentKey] = useState('');
+  const [newContentEn, setNewContentEn] = useState('');
+  const [newContentFr, setNewContentFr] = useState('');
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
 
   // Market Price State
@@ -158,15 +162,53 @@ const SuperAdminDashboard = () => {
   };
 
   const handleSaveHomeContent = async (key: string) => {
-    const value = homeContentDraft[key] ?? t(key);
+    const draft = homeContentDraft[key] ?? {};
     setHomeContentSaving(key);
     try {
-      await api.post('/content', { key, value });
+      await api.post('/content', {
+        key,
+        en: draft.en ?? i18n.t(key, { lng: 'en' }),
+        fr: draft.fr ?? i18n.t(key, { lng: 'fr' }),
+      });
       showSaToast(t('superadmin.content_saved', 'Enregistré'));
     } catch (error) {
       console.error('Failed to save home content', error);
     } finally {
       setHomeContentSaving(null);
+    }
+  };
+
+  const handleDeleteHomeContent = async (key: string) => {
+    setHomeContentDeleting(key);
+    try {
+      await api.delete('/content/' + key);
+      setHomeContentDraft(prev => {
+        const next = { ...prev };
+        delete next[key];
+        return next;
+      });
+      showSaToast(t('superadmin.content_deleted', 'Supprimé'));
+    } catch (error) {
+      console.error('Failed to delete home content', error);
+    } finally {
+      setHomeContentDeleting(null);
+    }
+  };
+
+  const handleAddHomeContent = async () => {
+    if (!newContentKey) return;
+    try {
+      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr });
+      setHomeContentDraft(prev => ({
+        ...prev,
+        [newContentKey]: { en: newContentEn, fr: newContentFr },
+      }));
+      setNewContentKey('');
+      setNewContentEn('');
+      setNewContentFr('');
+      showSaToast(t('superadmin.content_added', 'Ajouté'));
+    } catch (error) {
+      console.error('Failed to add home content', error);
     }
   };
 
@@ -1393,31 +1435,92 @@ const SuperAdminDashboard = () => {
               </h2>
               <p className="text-gray-500 text-sm">{t('superadmin.home_content_desc', "Modifiez les textes affichés sur la page d'accueil.")}</p>
             </div>
+
+            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+              <h3 className="text-lg font-bold text-brand-dark">{t('superadmin.add_content_key', 'Ajouter une clé')}</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+                <input
+                  value={newContentKey}
+                  onChange={(e) => setNewContentKey(e.target.value)}
+                  placeholder={t('superadmin.key', 'Clé (ex: home.hero_badge)')}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                />
+                <input
+                  value={newContentEn}
+                  onChange={(e) => setNewContentEn(e.target.value)}
+                  placeholder={t('superadmin.english', 'Anglais')}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                />
+                <input
+                  value={newContentFr}
+                  onChange={(e) => setNewContentFr(e.target.value)}
+                  placeholder={t('superadmin.french', 'Français')}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                />
+              </div>
+              <button
+                onClick={handleAddHomeContent}
+                disabled={!newContentKey}
+                className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+              >
+                <Check size={16} />
+                {t('superadmin.add', 'Ajouter')}
+              </button>
+            </div>
+
             {homeContentLoading ? (
               <div className="flex items-center justify-center h-64">
                 <Loader2 className="animate-spin text-brand-green" size={48} />
               </div>
             ) : (
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {HOME_CONTENT_KEYS.map((key) => (
-                  <div key={key} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-3">
-                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">{key.replace('home.', '')}</label>
-                    <textarea
-                      value={homeContentDraft[key] ?? t(key)}
-                      onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: e.target.value }))}
-                      rows={3}
-                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
-                    />
-                    <button
-                      onClick={() => handleSaveHomeContent(key)}
-                      disabled={homeContentSaving === key}
-                      className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
-                    >
-                      {homeContentSaving === key ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                      {t('common.save', 'Enregistrer')}
-                    </button>
-                  </div>
-                ))}
+              <div className="grid grid-cols-1 gap-6">
+                {Array.from(new Set([...HOME_CONTENT_KEYS, ...Object.keys(homeContentDraft)])).map((key) => {
+                  const draft = homeContentDraft[key] ?? {};
+                  const isHardcoded = HOME_CONTENT_KEYS.includes(key);
+                  return (
+                    <div key={key} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                      <div className="flex items-center justify-between">
+                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">{key}</label>
+                        <button
+                          onClick={() => handleDeleteHomeContent(key)}
+                          disabled={homeContentDeleting === key}
+                          className="flex items-center gap-1 text-rose-600 hover:text-rose-700 text-sm font-black disabled:opacity-50"
+                        >
+                          {homeContentDeleting === key ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                          {isHardcoded ? t('superadmin.reset', 'Reset') : t('superadmin.delete', 'Supprimer')}
+                        </button>
+                      </div>
+                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.english', 'Anglais')}</label>
+                          <textarea
+                            value={draft.en ?? i18n.t(key, { lng: 'en' })}
+                            onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], en: e.target.value } }))}
+                            rows={3}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                          />
+                        </div>
+                        <div className="space-y-1">
+                          <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.french', 'Français')}</label>
+                          <textarea
+                            value={draft.fr ?? i18n.t(key, { lng: 'fr' })}
+                            onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], fr: e.target.value } }))}
+                            rows={3}
+                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                          />
+                        </div>
+                      </div>
+                      <button
+                        onClick={() => handleSaveHomeContent(key)}
+                        disabled={homeContentSaving === key}
+                        className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+                      >
+                        {homeContentSaving === key ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                        {t('common.save', 'Enregistrer')}
+                      </button>
+                    </div>
+                  );
+                })}
               </div>
             )}
           </motion.div>

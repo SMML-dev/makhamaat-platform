@@ -8,8 +8,8 @@ export class Content {
   @Prop({ required: true, unique: true, index: true })
   key: string;
 
-  @Prop({ required: true })
-  value: string;
+  @Prop({ required: true, type: Object })
+  value: { en?: string; fr?: string };
 
   @Prop()
   updatedBy?: string;

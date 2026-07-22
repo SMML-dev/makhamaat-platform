@@ -48,11 +48,12 @@ export const HOME_CONTENT_KEYS: string[] = [
 ];
 
 const Home = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
   const { hash } = useLocation();
-  const [content, setContent] = useState<Record<string, string>>({});
+  const [content, setContent] = useState<Record<string, { en?: string; fr?: string }>>({});
 
-  const getContent = (key: string) => content[key] ?? t(key);
+  const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
+  const getContent = (key: string) => content[key]?.[lang] ?? t(key);
 
   useEffect(() => {
     api.get('/content').then(res => setContent(res.data)).catch(() => {});
