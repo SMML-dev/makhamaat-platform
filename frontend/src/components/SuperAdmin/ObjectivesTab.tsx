@@ -223,14 +223,14 @@ export default function ObjectivesTab() {
                   <tr key={obj._id} className="hover:bg-gray-50/50 transition-colors">
                     <td className="px-4 py-3 font-bold text-brand-dark">{obj.product?.name || obj.product}</td>
                     <td className="px-4 py-3">{obj.name}</td>
-                    <td className="px-4 py-3 capitalize">{obj.type}</td>
+                    <td className="px-4 py-3 capitalize">{(t(`superadmin.objective_type_${obj.type}`, obj.type) as string)}</td>
                     <td className="px-4 py-3">{obj.targetQuantity}</td>
                     <td className="px-4 py-3">{obj.targetPrice ?? '-'}</td>
                     <td className="px-4 py-3">{obj.targetRevenue ?? '-'}</td>
                     <td className="px-4 py-3">{obj.deadline ? new Date(obj.deadline).toLocaleDateString() : '-'}</td>
                     <td className="px-4 py-3">
                       <span className={`px-2 py-1 rounded-md text-xs font-black uppercase ${obj.status === 'completed' ? 'bg-green-100 text-green-600' : obj.status === 'cancelled' ? 'bg-red-100 text-red-600' : obj.status === 'in_progress' ? 'bg-blue-100 text-blue-600' : 'bg-yellow-100 text-yellow-600'}`}>
-                        {obj.status}
+                        {(t(`superadmin.objective_status_${obj.status}`, obj.status) as string)}
                       </span>
                     </td>
                     <td className="px-4 py-3">
