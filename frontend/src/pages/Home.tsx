@@ -50,10 +50,19 @@ export const HOME_CONTENT_KEYS: string[] = [
 const Home = () => {
   const { t, i18n } = useTranslation();
   const { hash } = useLocation();
-  const [content, setContent] = useState<Record<string, { en?: string; fr?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
 
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
-  const getContent = (key: string) => content[key]?.[lang] ?? t(key);
+  const getContent = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'string') return value || t(key);
+    return value?.[lang] ?? t(key);
+  };
+  const hasContent = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'string') return value.length > 0;
+    return !!(value?.en || value?.fr);
+  };
 
   useEffect(() => {
     api.get('/content').then(res => setContent(res.data)).catch(() => {});
@@ -278,10 +287,10 @@ const Home = () => {
         </div>
       </section>
 
-      {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && (content[key]?.en || content[key]?.fr)).length > 0 && (
+      {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && hasContent(key)).length > 0 && (
         <section className="py-16 bg-gray-50">
           <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && (content[key]?.en || content[key]?.fr)).map(key => (
+            {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && hasContent(key)).map(key => (
               <motion.div
                 key={key}
                 initial={{ opacity: 0, y: 20 }}
