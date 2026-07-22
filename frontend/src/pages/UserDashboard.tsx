@@ -970,16 +970,6 @@ const UserDashboard = () => {
                   </form>
                 </div>
 
-                <div className="bg-rose-50 border border-rose-100 rounded-[2.5rem] p-8 flex flex-col md:flex-row items-center justify-between gap-6 overflow-hidden relative">
-                  <div className="absolute top-0 right-0 w-32 h-32 bg-rose-100/50 rounded-full -mr-16 -mt-16 blur-3xl"></div>
-                  <div className="relative z-10">
-                    <h3 className="text-rose-900 font-black text-lg mb-1">{t('common.danger_zone', "Supprimer mon compte")}</h3>
-                    <p className="text-rose-600 text-xs font-medium max-w-sm">{t('user.delete_account_desc', "Cette action est irréversible et supprimera définitivement toutes vos données.")}</p>
-                  </div>
-                  <button className="relative z-10 px-8 py-3 bg-white text-rose-600 font-black text-xs uppercase tracking-widest rounded-2xl border border-rose-200 hover:bg-rose-600 hover:text-white transition-all shadow-sm">
-                    {t('common.delete_account', "Supprimer")}
-                  </button>
-                </div>
               </div>
 
               {/* Right Column: Loyalty & Sidebar Info */}
