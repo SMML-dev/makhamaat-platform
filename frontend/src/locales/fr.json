@@ -837,6 +837,7 @@
     "add_objective": "Ajouter un objectif",
     "confirm_delete_objective": "Supprimer cet objectif ?",
     "loading_objectives": "Chargement des objectifs...",
+    "error_loading_objectives": "Erreur lors du chargement des objectifs.",
     "no_objectives": "Aucun objectif défini. Cliquez sur Ajouter pour créer le premier.",
     "select_product": "Choisir un produit",
     "objective_name": "Nom de l'objectif",

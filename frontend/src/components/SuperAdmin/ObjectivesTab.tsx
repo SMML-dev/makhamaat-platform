@@ -12,6 +12,7 @@ export default function ObjectivesTab({ readOnly = false }: { readOnly?: boolean
   const [objectives, setObjectives] = useState<any[]>([]);
   const [products, setProducts] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [showForm, setShowForm] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [formData, setFormData] = useState({
@@ -29,11 +30,13 @@ export default function ObjectivesTab({ readOnly = false }: { readOnly?: boolean
 
   const fetchData = async () => {
     setLoading(true);
+    setError(null);
     try {
       const objRes = await api.get('/objectives');
       setObjectives(objRes.data);
     } catch (e) {
       console.error('Failed to load objectives', e);
+      setError((e as any)?.response?.data?.message || (t('superadmin.error_loading_objectives', 'Erreur lors du chargement des objectifs.') as string));
     }
     if (!readOnly) {
       try {
@@ -212,7 +215,9 @@ export default function ObjectivesTab({ readOnly = false }: { readOnly?: boolean
         </form>
       )}
 
-      {loading ? (
+      {error ? (
+        <div className="text-center py-12 text-red-500 font-bold">{error}</div>
+      ) : loading ? (
         <div className="text-center py-12 text-gray-500 font-bold">{t('superadmin.loading_objectives', 'Chargement des objectifs...')}</div>
       ) : (
         <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">

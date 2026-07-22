@@ -835,6 +835,7 @@
     "add_objective": "Add Objective",
     "confirm_delete_objective": "Delete this objective?",
     "loading_objectives": "Loading objectives...",
+    "error_loading_objectives": "Error loading objectives.",
     "no_objectives": "No objectives defined. Click Add to create the first one.",
     "select_product": "Choose a product",
     "objective_name": "Objective Name",
