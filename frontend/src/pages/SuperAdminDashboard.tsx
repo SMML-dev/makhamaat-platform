@@ -2,13 +2,14 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Target, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
+import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Target, Layout, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
 import { senegalMarketData } from '../data/senegalMarketData';
-import { authService, usersService, systemService, productsService, activitiesService, messagesService } from '../services/api';
+import api, { authService, usersService, systemService, productsService, activitiesService, messagesService } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ObjectivesTab from '../components/SuperAdmin/ObjectivesTab';
+import { HOME_CONTENT_KEYS } from './Home';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -55,6 +56,12 @@ const SuperAdminDashboard = () => {
   useEffect(() => {
     if (activeTab === 'messages') {
       fetchBroadcasts();
+    }
+  }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'home-content') {
+      fetchHomeContent();
     }
   }, [activeTab]);
   
@@ -124,6 +131,9 @@ const SuperAdminDashboard = () => {
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
   const [saToast, setSaToast] = useState<string | null>(null);
+  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, string>>({});
+  const [homeContentLoading, setHomeContentLoading] = useState(false);
+  const [homeContentSaving, setHomeContentSaving] = useState<string | null>(null);
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
 
   // Market Price State
@@ -133,6 +143,31 @@ const SuperAdminDashboard = () => {
   const showSaToast = (msg: string) => {
     setSaToast(msg);
     setTimeout(() => setSaToast(null), 3500);
+  };
+
+  const fetchHomeContent = async () => {
+    setHomeContentLoading(true);
+    try {
+      const res = await api.get('/content');
+      setHomeContentDraft(res.data);
+    } catch (error) {
+      console.error('Failed to fetch home content', error);
+    } finally {
+      setHomeContentLoading(false);
+    }
+  };
+
+  const handleSaveHomeContent = async (key: string) => {
+    const value = homeContentDraft[key] ?? t(key);
+    setHomeContentSaving(key);
+    try {
+      await api.post('/content', { key, value });
+      showSaToast(t('superadmin.content_saved', 'Enregistré'));
+    } catch (error) {
+      console.error('Failed to save home content', error);
+    } finally {
+      setHomeContentSaving(null);
+    }
   };
 
   const fetchBroadcasts = async () => {
@@ -1346,6 +1381,48 @@ const SuperAdminDashboard = () => {
       case 'objectives':
         return <ObjectivesTab />;
 
+      case 'home-content':
+        return (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-brand-dark flex items-center gap-3 mb-2">
+                <div className="w-10 h-10 rounded-xl bg-brand-yellow/10 flex items-center justify-center">
+                  <Layout className="text-brand-yellow" size={22} />
+                </div>
+                {t('superadmin.tab_home_content', 'Contenu Accueil')}
+              </h2>
+              <p className="text-gray-500 text-sm">{t('superadmin.home_content_desc', "Modifiez les textes affichés sur la page d'accueil.")}</p>
+            </div>
+            {homeContentLoading ? (
+              <div className="flex items-center justify-center h-64">
+                <Loader2 className="animate-spin text-brand-green" size={48} />
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {HOME_CONTENT_KEYS.map((key) => (
+                  <div key={key} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-3">
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">{key.replace('home.', '')}</label>
+                    <textarea
+                      value={homeContentDraft[key] ?? t(key)}
+                      onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: e.target.value }))}
+                      rows={3}
+                      className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                    />
+                    <button
+                      onClick={() => handleSaveHomeContent(key)}
+                      disabled={homeContentSaving === key}
+                      className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+                    >
+                      {homeContentSaving === key ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                      {t('common.save', 'Enregistrer')}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </motion.div>
+        );
+
       case 'dashboard':
       default:
         if (isDataLoading) {
@@ -1741,6 +1818,15 @@ const SuperAdminDashboard = () => {
               </div>
               <span>{t('superadmin.objectives', 'Objectifs')}</span>
             </button>
+            <button
+              onClick={() => handleTabChange('home-content')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'home-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Layout size={18} />
+              </div>
+              <span>{t('superadmin.home_content', 'Contenu Accueil')}</span>
+            </button>
           </nav>
         </div>
         <div className="px-6 py-4 border-t border-gray-900/50">
@@ -1783,6 +1869,7 @@ const SuperAdminDashboard = () => {
                 {activeTab === 'logs' && t('superadmin.tab_logs', "Centre de Sécurité & Logs")}
                 {activeTab === 'messages' && t('superadmin.tab_messages', 'Messagerie Stratégique')}
                 {activeTab === 'objectives' && t('superadmin.tab_objectives', 'Objectifs Produits')}
+                {activeTab === 'home-content' && t('superadmin.tab_home_content', 'Contenu Accueil')}
               </h1>
               <p className="text-gray-500 text-sm font-medium mt-1">{t('admin.secure_access_subtitle', 'Vue Super Administrateur - Accès Complet Sécurisé')}</p>
             </div>

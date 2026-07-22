@@ -1,14 +1,62 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowRight, Sprout, Tractor, Globe, ShoppingCart } from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
+import api from '../services/api';
 import logo from '../assets/logo_mbc.jpg';
 import pimentHydro from '../assets/piment_hydro.png';
+
+export const HOME_CONTENT_KEYS: string[] = [
+  'home.hero_badge',
+  'home.hero_title_prefix',
+  'home.hero_title_highlight',
+  'home.hero_description',
+  'home.discover_services',
+  'home.contact_us',
+  'home.expertise_label',
+  'home.expertise_title',
+  'home.features.hydroponics.title',
+  'home.features.hydroponics.desc',
+  'home.features.transformation.title',
+  'home.features.transformation.desc',
+  'home.features.kiosks.title',
+  'home.features.kiosks.desc',
+  'home.features.export.title',
+  'home.features.export.desc',
+  'home.innovation_badge',
+  'home.innovation_title_prefix',
+  'home.innovation_title_highlight',
+  'home.innovation_description',
+  'home.production_record_title',
+  'home.production_record_desc',
+  'home.annual_cycles_title',
+  'home.annual_cycles_desc',
+  'home.greenhouse_crops_title',
+  'home.greenhouse_crops_desc',
+  'home.greenhouse_crops_list',
+  'home.tech_badge',
+  'home.quality_label',
+  'home.quality_certified',
+  'home.about_title',
+  'home.about_description',
+  'home.about_items.seasonal',
+  'home.about_items.cereals',
+  'home.about_items.export',
+  'home.about_items.processing',
+  'home.learn_more',
+];
 
 const Home = () => {
   const { t } = useTranslation();
   const { hash } = useLocation();
+  const [content, setContent] = useState<Record<string, string>>({});
+
+  const getContent = (key: string) => content[key] ?? t(key);
+
+  useEffect(() => {
+    api.get('/content').then(res => setContent(res.data)).catch(() => {});
+  }, []);
 
   useEffect(() => {
     if (hash) {
@@ -57,23 +105,23 @@ const Home = () => {
               <img src={logo} alt="Makhamaat Logo" className="h-32 md:h-44 w-auto" />
             </motion.div>
             <span className="inline-block py-1 px-4 rounded-full bg-brand-yellow/20 text-brand-yellow font-bold text-xs mb-8 border border-brand-yellow/30 backdrop-blur-md uppercase tracking-[0.4em]">
-              {t('home.hero_badge')}
+              {getContent('home.hero_badge')}
             </span>
             <h1 className="text-5xl md:text-7xl font-bold text-white mb-6 leading-tight tracking-tight">
-              {t('home.hero_title_prefix')} <br className="hidden md:block" />
+              {getContent('home.hero_title_prefix')} <br className="hidden md:block" />
               <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-yellow to-brand-lightGreen">
-                {t('home.hero_title_highlight')}
+                {getContent('home.hero_title_highlight')}
               </span>
             </h1>
             <p className="mt-4 text-xl text-gray-200 max-w-3xl mb-10 leading-relaxed font-light">
-              {t('home.hero_description')}
+              {getContent('home.hero_description')}
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/services" className="premium-gradient text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-brand-green/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
-                {t('home.discover_services')} <ArrowRight className="ml-2 w-5 h-5" />
+                {getContent('home.discover_services')} <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link to="/contact" className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center">
-                {t('home.contact_us')}
+                {getContent('home.contact_us')}
               </Link>
             </div>
           </motion.div>
@@ -89,8 +137,8 @@ const Home = () => {
       <section id="services" className="py-24 bg-brand-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
-            <h2 className="text-brand-green font-bold tracking-wider uppercase text-sm mb-2">{t('home.expertise_label')}</h2>
-            <h3 className="text-4xl md:text-5xl font-bold text-brand-dark">{t('home.expertise_title')}</h3>
+            <h2 className="text-brand-green font-bold tracking-wider uppercase text-sm mb-2">{getContent('home.expertise_label')}</h2>
+            <h3 className="text-4xl md:text-5xl font-bold text-brand-dark">{getContent('home.expertise_title')}</h3>
             <div className="w-24 h-1 bg-brand-yellow mx-auto mt-6 rounded-full"></div>
           </div>
 
@@ -107,8 +155,8 @@ const Home = () => {
                 <div className={`w-16 h-16 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
                   <feature.icon className={`w-8 h-8 ${feature.color}`} />
                 </div>
-                <h4 className="text-xl font-bold text-brand-dark mb-3">{t(`home.features.${feature.key}.title`)}</h4>
-                <p className="text-gray-600 leading-relaxed text-sm">{t(`home.features.${feature.key}.desc`)}</p>
+                <h4 className="text-xl font-bold text-brand-dark mb-3">{getContent(`home.features.${feature.key}.title`)}</h4>
+                <p className="text-gray-600 leading-relaxed text-sm">{getContent(`home.features.${feature.key}.desc`)}</p>
               </motion.div>
             ))}
           </div>
@@ -116,12 +164,12 @@ const Home = () => {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center bg-brand-dark rounded-[3rem] p-8 md:p-16 text-white overflow-hidden relative">
             <div className="absolute top-0 left-0 w-64 h-64 bg-brand-yellow/10 rounded-full blur-3xl"></div>
             <div className="relative z-10">
-              <span className="text-brand-yellow font-bold uppercase tracking-widest text-xs mb-4 block">{t('home.innovation_badge')}</span>
+              <span className="text-brand-yellow font-bold uppercase tracking-widest text-xs mb-4 block">{getContent('home.innovation_badge')}</span>
               <h3 className="text-4xl md:text-5xl font-bold mb-8 leading-tight">
-                {t('home.innovation_title_prefix')} <span className="text-brand-green">{t('home.innovation_title_highlight')}</span>
+                {getContent('home.innovation_title_prefix')} <span className="text-brand-green">{getContent('home.innovation_title_highlight')}</span>
               </h3>
               <p className="text-gray-400 text-lg mb-8 leading-relaxed">
-                {t('home.innovation_description')}
+                {getContent('home.innovation_description')}
               </p>
               <div className="space-y-6">
                 <div className="flex items-start gap-4">
@@ -129,8 +177,8 @@ const Home = () => {
                     <span className="font-bold text-brand-yellow">34T</span>
                   </div>
                   <p className="text-gray-300">
-                    <span className="text-white font-bold block">{t('home.production_record_title')}</span>
-                    {t('home.production_record_desc')}
+                    <span className="text-white font-bold block">{getContent('home.production_record_title')}</span>
+                    {getContent('home.production_record_desc')}
                   </p>
                 </div>
                 <div className="flex items-start gap-4">
@@ -138,17 +186,17 @@ const Home = () => {
                     <span className="font-bold text-brand-green">2x</span>
                   </div>
                   <p className="text-gray-300">
-                    <span className="text-white font-bold block">{t('home.annual_cycles_title')}</span>
-                    {t('home.annual_cycles_desc')}
+                    <span className="text-white font-bold block">{getContent('home.annual_cycles_title')}</span>
+                    {getContent('home.annual_cycles_desc')}
                   </p>
                 </div>
                 <div className="mt-8 pt-6 border-t border-white/10">
                   <p className="text-gray-300 mb-4">
-                    <span className="text-white font-bold block">{t('home.greenhouse_crops_title')}</span>
-                    {t('home.greenhouse_crops_desc')}
+                    <span className="text-white font-bold block">{getContent('home.greenhouse_crops_title')}</span>
+                    {getContent('home.greenhouse_crops_desc')}
                   </p>
                   <div className="flex flex-wrap gap-2">
-                    {t('home.greenhouse_crops_list').split(', ').map((crop, index) => (
+                    {getContent('home.greenhouse_crops_list').split(', ').map((crop, index) => (
                       <span key={index} className="px-3 py-1 bg-white/10 rounded-full text-xs font-medium text-white border border-white/20">
                         {crop}
                       </span>
@@ -165,7 +213,7 @@ const Home = () => {
                  className="rounded-[3rem] shadow-2xl relative z-10 border-4 border-white/20 transform group-hover:scale-[1.02] transition-transform duration-700 w-full h-[450px] object-cover"
                />
                <div className="absolute top-6 right-6 z-20 bg-brand-green/90 backdrop-blur-md px-4 py-2 rounded-2xl border border-white/20 text-xs font-bold uppercase tracking-widest text-white shadow-xl">
-                 {t('home.tech_badge')}
+                 {getContent('home.tech_badge')}
                </div>
             </div>
           </div>
@@ -195,8 +243,8 @@ const Home = () => {
                   ✓
                 </div>
                 <div>
-                  <p className="text-sm text-gray-500 font-medium">{t('home.quality_label')}</p>
-                  <p className="font-bold text-brand-dark">{t('home.quality_certified')}</p>
+                  <p className="text-sm text-gray-500 font-medium">{getContent('home.quality_label')}</p>
+                  <p className="font-bold text-brand-dark">{getContent('home.quality_certified')}</p>
                 </div>
               </div>
             </motion.div>
@@ -208,21 +256,21 @@ const Home = () => {
               className="lg:w-1/2"
             >
               <h2 className="text-3xl md:text-4xl font-bold text-brand-dark mb-6">
-                {t('home.about_title')}
+                {getContent('home.about_title')}
               </h2>
               <p className="text-lg text-gray-600 mb-6 leading-relaxed">
-                {t('home.about_description')}
+                {getContent('home.about_description')}
               </p>
               <ul className="space-y-4 mb-8">
                 {aboutItems.map((item) => (
                   <li key={item} className="flex items-center text-gray-700">
                     <span className="w-6 h-6 rounded-full bg-brand-green/20 text-brand-green flex items-center justify-center mr-3 flex-shrink-0 text-sm">✓</span>
-                    {t(`home.about_items.${item}`)}
+                    {getContent(`home.about_items.${item}`)}
                   </li>
                 ))}
               </ul>
               <Link to="/about" className="inline-flex items-center text-brand-green font-bold hover:text-brand-dark transition-colors">
-                {t('home.learn_more')} <ArrowRight className="ml-2 w-5 h-5" />
+                {getContent('home.learn_more')} <ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </motion.div>
           </div>
