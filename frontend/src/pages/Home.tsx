@@ -277,6 +277,25 @@ const Home = () => {
           </div>
         </div>
       </section>
+
+      {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && (content[key]?.en || content[key]?.fr)).length > 0 && (
+        <section className="py-16 bg-gray-50">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && (content[key]?.en || content[key]?.fr)).map(key => (
+              <motion.div
+                key={key}
+                initial={{ opacity: 0, y: 20 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.5 }}
+                className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+              >
+                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+                <p className="text-gray-600">{getContent(key)}</p>
+              </motion.div>
+            ))}
+          </div>
+        </section>
+      )}
     </div>
   );
 };
