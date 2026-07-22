@@ -9,7 +9,7 @@ import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ObjectivesTab from '../components/SuperAdmin/ObjectivesTab';
-import { HOME_CONTENT_KEYS } from './Home';
+import { HOME_CONTENT_KEYS, CONTENT_ZONES } from './Home';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -131,13 +131,14 @@ const SuperAdminDashboard = () => {
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
   const [saToast, setSaToast] = useState<string | null>(null);
-  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, { en?: string; fr?: string }>>({});
+  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, { en?: string; fr?: string; zone?: string }>>({});
   const [homeContentLoading, setHomeContentLoading] = useState(false);
   const [homeContentSaving, setHomeContentSaving] = useState<string | null>(null);
   const [homeContentDeleting, setHomeContentDeleting] = useState<string | null>(null);
   const [newContentKey, setNewContentKey] = useState('');
   const [newContentEn, setNewContentEn] = useState('');
   const [newContentFr, setNewContentFr] = useState('');
+  const [newContentZone, setNewContentZone] = useState('bottom');
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
 
   // Market Price State
@@ -169,6 +170,7 @@ const SuperAdminDashboard = () => {
         key,
         en: draft.en ?? i18n.t(key, { lng: 'en' }),
         fr: draft.fr ?? i18n.t(key, { lng: 'fr' }),
+        zone: draft.zone ?? 'bottom',
       });
       showSaToast(t('superadmin.content_saved', 'Enregistré'));
     } catch (error) {
@@ -198,14 +200,15 @@ const SuperAdminDashboard = () => {
   const handleAddHomeContent = async () => {
     if (!newContentKey) return;
     try {
-      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr });
+      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newContentZone });
       setHomeContentDraft(prev => ({
         ...prev,
-        [newContentKey]: { en: newContentEn, fr: newContentFr },
+        [newContentKey]: { en: newContentEn, fr: newContentFr, zone: newContentZone },
       }));
       setNewContentKey('');
       setNewContentEn('');
       setNewContentFr('');
+      setNewContentZone('bottom');
       showSaToast(t('superadmin.content_added', 'Ajouté'));
     } catch (error) {
       console.error('Failed to add home content', error);
@@ -1438,7 +1441,7 @@ const SuperAdminDashboard = () => {
 
             <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
               <h3 className="text-lg font-bold text-brand-dark">{t('superadmin.add_content_key', 'Ajouter une clé')}</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
                 <input
                   value={newContentKey}
                   onChange={(e) => setNewContentKey(e.target.value)}
@@ -1457,6 +1460,15 @@ const SuperAdminDashboard = () => {
                   placeholder={t('superadmin.french', 'Français')}
                   className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
                 />
+                <select
+                  value={newContentZone}
+                  onChange={(e) => setNewContentZone(e.target.value)}
+                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                >
+                  {CONTENT_ZONES.map(zone => (
+                    <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
+                  ))}
+                </select>
               </div>
               <button
                 onClick={handleAddHomeContent}
@@ -1509,6 +1521,18 @@ const SuperAdminDashboard = () => {
                             className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
                           />
                         </div>
+                      </div>
+                      <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.placement', 'Placement')}</label>
+                        <select
+                          value={draft.zone ?? 'bottom'}
+                          onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], zone: e.target.value } }))}
+                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                        >
+                          {CONTENT_ZONES.map(zone => (
+                            <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
+                          ))}
+                        </select>
                       </div>
                       <button
                         onClick={() => handleSaveHomeContent(key)}

@@ -12,4 +12,8 @@ export class UpdateContentDto {
   @IsOptional()
   @IsString()
   fr?: string;
+
+  @IsOptional()
+  @IsString()
+  zone?: string;
 }

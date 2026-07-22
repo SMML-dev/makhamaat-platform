@@ -12,6 +12,9 @@ export class Content {
   value: { en?: string; fr?: string };
 
   @Prop()
+  zone?: string;
+
+  @Prop()
   updatedBy?: string;
 }
 

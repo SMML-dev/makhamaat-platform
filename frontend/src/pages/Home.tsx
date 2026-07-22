@@ -47,10 +47,12 @@ export const HOME_CONTENT_KEYS: string[] = [
   'home.learn_more',
 ];
 
+export const CONTENT_ZONES = ['top', 'after-hero', 'after-services', 'after-about', 'bottom'];
+
 const Home = () => {
   const { t, i18n } = useTranslation();
   const { hash } = useLocation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
 
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const getContent = (key: string) => {
@@ -58,10 +60,32 @@ const Home = () => {
     if (typeof value === 'string') return value || t(key);
     return value?.[lang] ?? t(key);
   };
-  const hasContent = (key: string) => {
-    const value = content[key];
-    if (typeof value === 'string') return value.length > 0;
-    return !!(value?.en || value?.fr);
+  const renderDynamicZone = (zone: string, bgClass: string = 'bg-white') => {
+    const keys = Object.keys(content).filter((key) => {
+      const value = content[key];
+      if (HOME_CONTENT_KEYS.includes(key)) return false;
+      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
+      return value?.zone === zone && (value?.en || value?.fr);
+    });
+    if (keys.length === 0) return null;
+    return (
+      <section className={`py-16 ${bgClass}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {keys.map((key) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+            >
+              <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+              <p className="text-gray-600">{getContent(key)}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    );
   };
 
   useEffect(() => {
@@ -89,6 +113,7 @@ const Home = () => {
 
   return (
     <div className="flex flex-col w-full">
+      {renderDynamicZone('top', 'bg-white')}
       <section className="relative min-h-[90vh] flex items-center justify-center overflow-hidden">
         <div className="absolute inset-0 z-0">
           <div className="absolute inset-0 bg-gradient-to-r from-brand-dark/90 to-brand-green/80 z-10" />
@@ -144,6 +169,7 @@ const Home = () => {
         </div>
       </section>
 
+      {renderDynamicZone('after-hero', 'bg-white')}
       <section id="services" className="py-24 bg-brand-light">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-16">
@@ -230,6 +256,7 @@ const Home = () => {
         </div>
       </section>
 
+      {renderDynamicZone('after-services', 'bg-white')}
       <section id="about" className="py-24 bg-white relative overflow-hidden">
         <div className="absolute top-0 right-0 -mt-20 -mr-20 w-80 h-80 bg-brand-green/5 rounded-full blur-3xl"></div>
         <div className="absolute bottom-0 left-0 -mb-20 -ml-20 w-80 h-80 bg-brand-yellow/10 rounded-full blur-3xl"></div>
@@ -287,24 +314,8 @@ const Home = () => {
         </div>
       </section>
 
-      {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && hasContent(key)).length > 0 && (
-        <section className="py-16 bg-gray-50">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {Object.keys(content).filter(key => !HOME_CONTENT_KEYS.includes(key) && hasContent(key)).map(key => (
-              <motion.div
-                key={key}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                transition={{ duration: 0.5 }}
-                className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
-              >
-                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
-                <p className="text-gray-600">{getContent(key)}</p>
-              </motion.div>
-            ))}
-          </div>
-        </section>
-      )}
+      {renderDynamicZone('after-about', 'bg-white')}
+      {renderDynamicZone('bottom', 'bg-gray-50')}
     </div>
   );
 };
