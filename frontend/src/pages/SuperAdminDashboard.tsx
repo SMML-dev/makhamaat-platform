@@ -1665,7 +1665,7 @@ const SuperAdminDashboard = () => {
 
   return (
     <div className="min-h-screen bg-gray-50 flex pt-20">
-      <aside className="w-[280px] bg-black text-white hidden md:flex flex-col border-r border-gray-800 shadow-2xl z-20">
+      <aside className="w-[280px] bg-black text-white hidden md:flex flex-col border-r border-gray-800 shadow-2xl z-20 h-[calc(100vh-80px)] overflow-y-auto">
         <div className="p-6">
           <div className="flex items-center mb-8 gap-3">
             <div className="w-10 h-10 bg-brand-yellow rounded-xl flex items-center justify-center text-black shadow-[0_0_15px_rgba(255,209,0,0.3)]">
