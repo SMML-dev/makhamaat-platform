@@ -63,7 +63,7 @@ const SuperAdminDashboard = () => {
   }, [activeTab]);
 
   useEffect(() => {
-    if (activeTab === 'home-content') {
+    if (activeTab === 'pages-content') {
       fetchHomeContent();
     }
   }, [activeTab]);
@@ -142,6 +142,14 @@ const SuperAdminDashboard = () => {
   const [newContentEn, setNewContentEn] = useState('');
   const [newContentFr, setNewContentFr] = useState('');
   const [newContentZone, setNewContentZone] = useState('bottom');
+  const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact'>('home');
+
+  const PAGES_CONFIG = {
+    home: { labelKey: 'page_home', titleKey: 'tab_home_content', descKey: 'home_content_desc', keys: HOME_CONTENT_KEYS, prefix: 'home.', zones: CONTENT_ZONES },
+    about: { labelKey: 'page_about', titleKey: 'tab_about_content', descKey: 'about_content_desc', keys: ABOUT_CONTENT_KEYS, prefix: 'about_page.', zones: ABOUT_CONTENT_ZONES },
+    services: { labelKey: 'page_services', titleKey: 'tab_services_content', descKey: 'services_content_desc', keys: SERVICES_CONTENT_KEYS, prefix: 'services_page.', zones: SERVICES_CONTENT_ZONES },
+    contact: { labelKey: 'page_contact', titleKey: 'tab_contact_content', descKey: 'contact_content_desc', keys: CONTACT_CONTENT_KEYS, prefix: 'contact_page.', zones: CONTACT_CONTENT_ZONES },
+  };
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
 
   // Market Price State
@@ -1565,17 +1573,27 @@ const SuperAdminDashboard = () => {
       case 'objectives':
         return <ObjectivesTab />;
 
-      case 'home-content':
-        return renderPageContentEditor(HOME_CONTENT_KEYS, 'home.', 'tab_home_content', 'home_content_desc', CONTENT_ZONES);
-
-      case 'about-content':
-        return renderPageContentEditor(ABOUT_CONTENT_KEYS, 'about_page.', 'tab_about_content', 'about_content_desc', ABOUT_CONTENT_ZONES);
-
-      case 'services-content':
-        return renderPageContentEditor(SERVICES_CONTENT_KEYS, 'services_page.', 'tab_services_content', 'services_content_desc', SERVICES_CONTENT_ZONES);
-
-      case 'contact-content':
-        return renderPageContentEditor(CONTACT_CONTENT_KEYS, 'contact_page.', 'tab_contact_content', 'contact_content_desc', CONTACT_CONTENT_ZONES);
+      case 'pages-content': {
+        const config = PAGES_CONFIG[selectedPage];
+        return (
+          <div className="space-y-6">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
+              <label className="text-sm font-bold text-gray-600 uppercase tracking-wider">{t('superadmin.select_page', 'Page')}</label>
+              <select
+                value={selectedPage}
+                onChange={(e) => setSelectedPage(e.target.value as 'home' | 'about' | 'services' | 'contact')}
+                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green min-w-[180px]"
+              >
+                <option value="home">{t('superadmin.page_home', 'Home')}</option>
+                <option value="about">{t('superadmin.page_about', 'About')}</option>
+                <option value="services">{t('superadmin.page_services', 'Services')}</option>
+                <option value="contact">{t('superadmin.page_contact', 'Contact')}</option>
+              </select>
+            </div>
+            {renderPageContentEditor(config.keys, config.prefix, config.titleKey, config.descKey, config.zones)}
+          </div>
+        );
+      }
 
       case 'dashboard':
       default:
@@ -1973,40 +1991,13 @@ const SuperAdminDashboard = () => {
               <span>{t('superadmin.objectives', 'Objectifs')}</span>
             </button>
             <button
-              onClick={() => handleTabChange('home-content')}
-              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'home-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+              onClick={() => handleTabChange('pages-content')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'pages-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
             >
               <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
                 <Layout size={18} />
               </div>
-              <span>{t('superadmin.home_content', 'Contenu Accueil')}</span>
-            </button>
-            <button
-              onClick={() => handleTabChange('about-content')}
-              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'about-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
-            >
-              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Layout size={18} />
-              </div>
-              <span>{t('superadmin.about_content', 'Contenu À propos')}</span>
-            </button>
-            <button
-              onClick={() => handleTabChange('services-content')}
-              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'services-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
-            >
-              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Layout size={18} />
-              </div>
-              <span>{t('superadmin.services_content', 'Contenu Services')}</span>
-            </button>
-            <button
-              onClick={() => handleTabChange('contact-content')}
-              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'contact-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
-            >
-              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
-                <Layout size={18} />
-              </div>
-              <span>{t('superadmin.contact_content', 'Contenu Contact')}</span>
+              <span>{t('superadmin.pages_content', 'Pages Content')}</span>
             </button>
           </nav>
         </div>
@@ -2050,10 +2041,7 @@ const SuperAdminDashboard = () => {
                 {activeTab === 'logs' && t('superadmin.tab_logs', "Centre de Sécurité & Logs")}
                 {activeTab === 'messages' && t('superadmin.tab_messages', 'Messagerie Stratégique')}
                 {activeTab === 'objectives' && t('superadmin.tab_objectives', 'Objectifs Produits')}
-                {activeTab === 'home-content' && t('superadmin.tab_home_content', 'Contenu Accueil')}
-                {activeTab === 'about-content' && t('superadmin.tab_about_content', 'Contenu À propos')}
-                {activeTab === 'services-content' && t('superadmin.tab_services_content', 'Contenu Services')}
-                {activeTab === 'contact-content' && t('superadmin.tab_contact_content', 'Contenu Contact')}
+                {activeTab === 'pages-content' && t('superadmin.tab_pages_content', 'Pages Content')}
               </h1>
               <p className="text-gray-500 text-sm font-medium mt-1">{t('admin.secure_access_subtitle', 'Vue Super Administrateur - Accès Complet Sécurisé')}</p>
             </div>
