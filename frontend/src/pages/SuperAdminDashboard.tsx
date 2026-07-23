@@ -1578,17 +1578,22 @@ const SuperAdminDashboard = () => {
         return (
           <div className="space-y-6">
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
-              <label className="text-sm font-bold text-gray-600 uppercase tracking-wider">{t('superadmin.select_page', 'Page')}</label>
-              <select
-                value={selectedPage}
-                onChange={(e) => setSelectedPage(e.target.value as 'home' | 'about' | 'services' | 'contact')}
-                className="px-4 py-2.5 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green min-w-[180px]"
-              >
-                <option value="home">{t('superadmin.page_home', 'Home')}</option>
-                <option value="about">{t('superadmin.page_about', 'About')}</option>
-                <option value="services">{t('superadmin.page_services', 'Services')}</option>
-                <option value="contact">{t('superadmin.page_contact', 'Contact')}</option>
-              </select>
+              <span className="text-sm font-bold text-gray-600 uppercase tracking-wider">{t('superadmin.select_page', 'Page')}</span>
+              <div className="flex flex-wrap gap-2">
+                {(['home', 'about', 'services', 'contact'] as const).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setSelectedPage(page)}
+                    className={`px-4 py-2 rounded-xl text-sm font-bold transition-all border ${
+                      selectedPage === page
+                        ? 'bg-brand-dark text-white border-brand-dark shadow-md'
+                        : 'bg-white text-gray-600 border-gray-200 hover:border-brand-green hover:text-brand-green'
+                    }`}
+                  >
+                    {t('superadmin.' + PAGES_CONFIG[page].labelKey, page)}
+                  </button>
+                ))}
+              </div>
             </div>
             {renderPageContentEditor(config.keys, config.prefix, config.titleKey, config.descKey, config.zones)}
           </div>
