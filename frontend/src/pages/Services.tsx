@@ -23,9 +23,11 @@ export const SERVICES_CONTENT_KEYS: string[] = [
   'services_page.focus_image_alt',
 ];
 
+export const SERVICES_CONTENT_ZONES: string[] = ['top', 'after-hero', 'after-list', 'after-focus', 'bottom'];
+
 const Services = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -38,7 +40,34 @@ const Services = () => {
     return value?.[lang] ?? t(key);
   };
 
-  const customKeys = Object.keys(content).filter(key => !SERVICES_CONTENT_KEYS.includes(key) && (typeof content[key] === 'string' ? (content[key] as string).length > 0 : (content[key]?.en || content[key]?.fr)));
+  const renderDynamicZone = (zone: string, bgClass: string = 'bg-white') => {
+    const keys = Object.keys(content).filter((key) => {
+      const value = content[key];
+      if (SERVICES_CONTENT_KEYS.includes(key)) return false;
+      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
+      return value?.zone === zone && (value?.en || value?.fr);
+    });
+    if (keys.length === 0) return null;
+    return (
+      <section className={`py-16 ${bgClass}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {keys.map((key) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+            >
+              <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+              <p className="text-gray-600">{getContent(key)}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
 
   const servicesList = [
     { icon: Leaf, key: 'hydroponics' },
@@ -50,6 +79,7 @@ const Services = () => {
   return (
     <div className="py-24 bg-white min-h-[80vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {renderDynamicZone('top')}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -64,6 +94,8 @@ const Services = () => {
             {getContent('services_page.subtitle')}
           </p>
         </motion.div>
+
+        {renderDynamicZone('after-hero')}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-10 mb-24">
           {servicesList.map((service, idx) => (
@@ -88,6 +120,8 @@ const Services = () => {
           ))}
         </div>
 
+        {renderDynamicZone('after-list')}
+
         {/* Projet Focus */}
         <div className="bg-gradient-to-br from-brand-green/5 to-brand-yellow/5 rounded-[3rem] p-12 border border-brand-green/10 relative overflow-hidden group">
              <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
@@ -110,18 +144,9 @@ const Services = () => {
              </div>
         </div>
 
-      {customKeys.length > 0 && (
-        <section className="py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {customKeys.map(key => (
-              <div key={key} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
-                <p className="text-gray-600">{getContent(key)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+        {renderDynamicZone('after-focus')}
+
+      {renderDynamicZone('bottom')}
       </div>
     </div>
   );

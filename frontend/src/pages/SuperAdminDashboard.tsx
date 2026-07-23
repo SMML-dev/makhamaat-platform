@@ -10,9 +10,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ObjectivesTab from '../components/SuperAdmin/ObjectivesTab';
 import { HOME_CONTENT_KEYS, CONTENT_ZONES } from './Home';
-import { ABOUT_CONTENT_KEYS } from './About';
-import { SERVICES_CONTENT_KEYS } from './Services';
-import { CONTACT_CONTENT_KEYS } from './Contact';
+import { ABOUT_CONTENT_KEYS, ABOUT_CONTENT_ZONES } from './About';
+import { SERVICES_CONTENT_KEYS, SERVICES_CONTENT_ZONES } from './Services';
+import { CONTACT_CONTENT_KEYS, CONTACT_CONTENT_ZONES } from './Contact';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -173,7 +173,7 @@ const SuperAdminDashboard = () => {
         key,
         en: draft.en ?? i18n.t(key, { lng: 'en' }),
         fr: draft.fr ?? i18n.t(key, { lng: 'fr' }),
-        zone: activeTab === 'home-content' ? (draft.zone ?? 'bottom') : undefined,
+        zone: activeTab.endsWith('-content') ? (draft.zone ?? 'bottom') : undefined,
       });
       showSaToast(t('superadmin.content_saved', 'Enregistré'));
     } catch (error) {
@@ -203,7 +203,7 @@ const SuperAdminDashboard = () => {
   const handleAddHomeContent = async () => {
     if (!newContentKey) return;
     try {
-      const newZone = activeTab === 'home-content' ? newContentZone : undefined;
+      const newZone = activeTab.endsWith('-content') ? newContentZone : undefined;
       await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newZone });
       setHomeContentDraft(prev => ({
         ...prev,
@@ -632,11 +632,12 @@ const SuperAdminDashboard = () => {
     doc.save(`mbc_rapport_${activeTab}_2026.pdf`);
   };
 
-  const renderPageContentEditor = (pageKeys: string[], pagePrefix: string, titleKey: string, descKey: string, allowZone: boolean) => {
+  const renderPageContentEditor = (pageKeys: string[], pagePrefix: string, titleKey: string, descKey: string, zones: string[]) => {
     const allKeys = Array.from(new Set([
       ...pageKeys,
       ...Object.keys(homeContentDraft).filter(k => !pageKeys.includes(k) && k.startsWith(pagePrefix)),
     ]));
+    const allowZone = zones.length > 0;
 
     return (
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
@@ -677,7 +678,7 @@ const SuperAdminDashboard = () => {
                 onChange={(e) => setNewContentZone(e.target.value)}
                 className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
               >
-                {CONTENT_ZONES.map(zone => (
+                {zones.map(zone => (
                   <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
                 ))}
               </select>
@@ -743,7 +744,7 @@ const SuperAdminDashboard = () => {
                         onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], zone: e.target.value } }))}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
                       >
-                        {CONTENT_ZONES.map(zone => (
+                        {zones.map(zone => (
                           <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
                         ))}
                       </select>
@@ -1565,16 +1566,16 @@ const SuperAdminDashboard = () => {
         return <ObjectivesTab />;
 
       case 'home-content':
-        return renderPageContentEditor(HOME_CONTENT_KEYS, 'home.', 'tab_home_content', 'home_content_desc', true);
+        return renderPageContentEditor(HOME_CONTENT_KEYS, 'home.', 'tab_home_content', 'home_content_desc', CONTENT_ZONES);
 
       case 'about-content':
-        return renderPageContentEditor(ABOUT_CONTENT_KEYS, 'about_page.', 'tab_about_content', 'about_content_desc', false);
+        return renderPageContentEditor(ABOUT_CONTENT_KEYS, 'about_page.', 'tab_about_content', 'about_content_desc', ABOUT_CONTENT_ZONES);
 
       case 'services-content':
-        return renderPageContentEditor(SERVICES_CONTENT_KEYS, 'services_page.', 'tab_services_content', 'services_content_desc', false);
+        return renderPageContentEditor(SERVICES_CONTENT_KEYS, 'services_page.', 'tab_services_content', 'services_content_desc', SERVICES_CONTENT_ZONES);
 
       case 'contact-content':
-        return renderPageContentEditor(CONTACT_CONTENT_KEYS, 'contact_page.', 'tab_contact_content', 'contact_content_desc', false);
+        return renderPageContentEditor(CONTACT_CONTENT_KEYS, 'contact_page.', 'tab_contact_content', 'contact_content_desc', CONTACT_CONTENT_ZONES);
 
       case 'dashboard':
       default:

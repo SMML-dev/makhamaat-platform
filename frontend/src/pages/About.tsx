@@ -28,9 +28,11 @@ export const ABOUT_CONTENT_KEYS: string[] = [
   'about_page.commitments.proximity.desc',
 ];
 
+export const ABOUT_CONTENT_ZONES: string[] = ['top', 'after-hero', 'after-vision', 'after-expertise', 'after-commitments', 'bottom'];
+
 const About = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -43,7 +45,34 @@ const About = () => {
     return value?.[lang] ?? t(key);
   };
 
-  const customKeys = Object.keys(content).filter(key => !ABOUT_CONTENT_KEYS.includes(key) && (typeof content[key] === 'string' ? (content[key] as string).length > 0 : (content[key]?.en || content[key]?.fr)));
+  const renderDynamicZone = (zone: string, bgClass: string = 'bg-brand-light') => {
+    const keys = Object.keys(content).filter((key) => {
+      const value = content[key];
+      if (ABOUT_CONTENT_KEYS.includes(key)) return false;
+      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
+      return value?.zone === zone && (value?.en || value?.fr);
+    });
+    if (keys.length === 0) return null;
+    return (
+      <section className={`py-16 ${bgClass}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {keys.map((key) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+            >
+              <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+              <p className="text-gray-600">{getContent(key)}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    );
+  };
+
 
   const cards = [
     { key: 'fruits', icon: '🍋' },
@@ -59,6 +88,7 @@ const About = () => {
   return (
     <div className="py-24 bg-brand-light min-h-[80vh]">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {renderDynamicZone('top')}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -73,6 +103,8 @@ const About = () => {
             {getContent('about_page.subtitle')}
           </p>
         </motion.div>
+
+        {renderDynamicZone('after-hero')}
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-16 items-center mb-32">
           <motion.div
@@ -116,6 +148,8 @@ const About = () => {
           </motion.div>
         </div>
 
+        {renderDynamicZone('after-expertise')}
+
         {/* Engagement Section */}
         <section className="bg-[#0b121e] rounded-[4rem] p-12 md:p-24 text-white overflow-hidden relative shadow-2xl">
           <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-green/10 rounded-full blur-[120px] -mr-64 -mt-64"></div>
@@ -153,18 +187,8 @@ const About = () => {
           </div>
         </section>
 
-        {customKeys.length > 0 && (
-          <section className="py-16">
-            <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-              {customKeys.map(key => (
-                <div key={key} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                  <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
-                  <p className="text-gray-600">{getContent(key)}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-        )}
+        {renderDynamicZone('after-commitments')}
+        {renderDynamicZone('bottom')}
       </div>
     </div>
   );

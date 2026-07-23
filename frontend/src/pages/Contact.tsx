@@ -27,9 +27,11 @@ export const CONTACT_CONTENT_KEYS: string[] = [
   'contact_page.error_message',
 ];
 
+export const CONTACT_CONTENT_ZONES: string[] = ['top', 'after-header', 'after-info', 'after-form', 'bottom'];
+
 const Contact = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -42,7 +44,33 @@ const Contact = () => {
     return value?.[lang] ?? t(key);
   };
 
-  const customKeys = Object.keys(content).filter(key => !CONTACT_CONTENT_KEYS.includes(key) && (typeof content[key] === 'string' ? (content[key] as string).length > 0 : (content[key]?.en || content[key]?.fr)));
+  const renderDynamicZone = (zone: string, bgClass: string = 'bg-brand-light') => {
+    const keys = Object.keys(content).filter((key) => {
+      const value = content[key];
+      if (CONTACT_CONTENT_KEYS.includes(key)) return false;
+      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
+      return value?.zone === zone && (value?.en || value?.fr);
+    });
+    if (keys.length === 0) return null;
+    return (
+      <section className={`py-16 ${bgClass}`}>
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+          {keys.map((key) => (
+            <motion.div
+              key={key}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.5 }}
+              className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
+            >
+              <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+              <p className="text-gray-600">{getContent(key)}</p>
+            </motion.div>
+          ))}
+        </div>
+      </section>
+    );
+  };
 
   const [isSending, setIsSending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -93,6 +121,7 @@ const Contact = () => {
       </AnimatePresence>
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        {renderDynamicZone('top')}
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
@@ -107,6 +136,8 @@ const Contact = () => {
             {getContent('contact_page.subtitle')}
           </p>
         </motion.div>
+
+        {renderDynamicZone('after-header')}
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-12 mt-16">
           <motion.div 
@@ -146,6 +177,8 @@ const Contact = () => {
               </div>
             </div>
           </motion.div>
+
+          {renderDynamicZone('after-info')}
 
           <motion.div 
             initial={{ opacity: 0, x: 30 }}
@@ -190,20 +223,11 @@ const Contact = () => {
                 )}
               </button>
             </form>
+
+            {renderDynamicZone('after-form')}
           </motion.div>
         </div>
-      {customKeys.length > 0 && (
-        <section className="py-16">
-          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
-            {customKeys.map(key => (
-              <div key={key} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
-                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
-                <p className="text-gray-600">{getContent(key)}</p>
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
+      {renderDynamicZone('bottom')}
       </div>
     </div>
   );
