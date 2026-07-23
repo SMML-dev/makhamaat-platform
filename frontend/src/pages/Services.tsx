@@ -1,10 +1,44 @@
+import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { Leaf, Apple, ShoppingBag, Truck } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
+import api from '../services/api';
 import pimentHydro from '../assets/piment_hydro.png';
 
+export const SERVICES_CONTENT_KEYS: string[] = [
+  'services_page.title_prefix',
+  'services_page.title_highlight',
+  'services_page.subtitle',
+  'services_page.items.hydroponics.title',
+  'services_page.items.hydroponics.desc',
+  'services_page.items.fruits.title',
+  'services_page.items.fruits.desc',
+  'services_page.items.kiosks.title',
+  'services_page.items.kiosks.desc',
+  'services_page.items.export.title',
+  'services_page.items.export.desc',
+  'services_page.focus_title_prefix',
+  'services_page.focus_title_highlight',
+  'services_page.focus_description',
+  'services_page.focus_image_alt',
+];
+
 const Services = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
+
+  useEffect(() => {
+    api.get('/content').then(res => setContent(res.data)).catch(() => {});
+  }, []);
+
+  const getContent = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'string') return value || t(key);
+    return value?.[lang] ?? t(key);
+  };
+
+  const customKeys = Object.keys(content).filter(key => !SERVICES_CONTENT_KEYS.includes(key) && (typeof content[key] === 'string' ? (content[key] as string).length > 0 : (content[key]?.en || content[key]?.fr)));
 
   const servicesList = [
     { icon: Leaf, key: 'hydroponics' },
@@ -23,11 +57,11 @@ const Services = () => {
           className="text-center mb-20"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-brand-dark mb-6">
-            {t('services_page.title_prefix')} <span className="text-brand-yellow">{t('services_page.title_highlight')}</span>
+            {getContent('services_page.title_prefix')} <span className="text-brand-yellow">{getContent('services_page.title_highlight')}</span>
           </h1>
           <div className="w-24 h-1 bg-brand-green mx-auto mb-8 rounded-full"></div>
           <p className="text-xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
-            {t('services_page.subtitle')}
+            {getContent('services_page.subtitle')}
           </p>
         </motion.div>
 
@@ -47,8 +81,8 @@ const Services = () => {
                 </div>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-brand-dark mb-3 leading-tight">{t(`services_page.items.${service.key}.title`)}</h3>
-                <p className="text-gray-600 leading-relaxed text-sm">{t(`services_page.items.${service.key}.desc`)}</p>
+                <h3 className="text-2xl font-bold text-brand-dark mb-3 leading-tight">{getContent(`services_page.items.${service.key}.title`)}</h3>
+                <p className="text-gray-600 leading-relaxed text-sm">{getContent(`services_page.items.${service.key}.desc`)}</p>
               </div>
             </motion.div>
           ))}
@@ -59,23 +93,35 @@ const Services = () => {
              <div className="relative z-10 flex flex-col md:flex-row items-center gap-12">
                 <div className="md:w-1/2">
                    <h2 className="text-3xl font-bold text-brand-dark mb-6 tracking-tight">
-                     {t('services_page.focus_title_prefix')} <span className="text-brand-green underline decoration-brand-yellow decoration-4 underline-offset-8">{t('services_page.focus_title_highlight')}</span>
+                     {getContent('services_page.focus_title_prefix')} <span className="text-brand-green underline decoration-brand-yellow decoration-4 underline-offset-8">{getContent('services_page.focus_title_highlight')}</span>
                    </h2>
                    <p className="text-gray-600 mb-6 leading-relaxed text-lg">
-                      {t('services_page.focus_description')}
+                      {getContent('services_page.focus_description')}
                    </p>
                 </div>
                 <div className="md:w-1/2 relative">
                    <div className="absolute -inset-1 bg-gradient-to-r from-brand-green to-brand-yellow rounded-[2rem] blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
                    <img 
                       src={pimentHydro} 
-                      alt={t('services_page.focus_image_alt')} 
+                      alt={getContent('services_page.focus_image_alt')} 
                       className="relative rounded-[2rem] shadow-2xl border-4 border-white transform group-hover:scale-105 group-hover:rotate-0 transition-all duration-700 w-full object-cover h-[400px]"
                    />
                 </div>
              </div>
         </div>
 
+      {customKeys.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {customKeys.map(key => (
+              <div key={key} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+                <p className="text-gray-600">{getContent(key)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       </div>
     </div>
   );

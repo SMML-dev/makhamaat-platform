@@ -10,6 +10,9 @@ import jsPDF from 'jspdf';
 import autoTable from 'jspdf-autotable';
 import ObjectivesTab from '../components/SuperAdmin/ObjectivesTab';
 import { HOME_CONTENT_KEYS, CONTENT_ZONES } from './Home';
+import { ABOUT_CONTENT_KEYS } from './About';
+import { SERVICES_CONTENT_KEYS } from './Services';
+import { CONTACT_CONTENT_KEYS } from './Contact';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -170,7 +173,7 @@ const SuperAdminDashboard = () => {
         key,
         en: draft.en ?? i18n.t(key, { lng: 'en' }),
         fr: draft.fr ?? i18n.t(key, { lng: 'fr' }),
-        zone: draft.zone ?? 'bottom',
+        zone: activeTab === 'home-content' ? (draft.zone ?? 'bottom') : undefined,
       });
       showSaToast(t('superadmin.content_saved', 'Enregistré'));
     } catch (error) {
@@ -200,10 +203,11 @@ const SuperAdminDashboard = () => {
   const handleAddHomeContent = async () => {
     if (!newContentKey) return;
     try {
-      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newContentZone });
+      const newZone = activeTab === 'home-content' ? newContentZone : undefined;
+      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newZone });
       setHomeContentDraft(prev => ({
         ...prev,
-        [newContentKey]: { en: newContentEn, fr: newContentFr, zone: newContentZone },
+        [newContentKey]: { en: newContentEn, fr: newContentFr, zone: newZone },
       }));
       setNewContentKey('');
       setNewContentEn('');
@@ -626,6 +630,140 @@ const SuperAdminDashboard = () => {
     }
 
     doc.save(`mbc_rapport_${activeTab}_2026.pdf`);
+  };
+
+  const renderPageContentEditor = (pageKeys: string[], pagePrefix: string, titleKey: string, descKey: string, allowZone: boolean) => {
+    const allKeys = Array.from(new Set([
+      ...pageKeys,
+      ...Object.keys(homeContentDraft).filter(k => !pageKeys.includes(k) && k.startsWith(pagePrefix)),
+    ]));
+
+    return (
+      <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+        <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+          <h2 className="text-2xl font-bold text-brand-dark flex items-center gap-3 mb-2">
+            <div className="w-10 h-10 rounded-xl bg-brand-yellow/10 flex items-center justify-center">
+              <Layout className="text-brand-yellow" size={22} />
+            </div>
+            {t('superadmin.' + titleKey, titleKey)}
+          </h2>
+          <p className="text-gray-500 text-sm">{t('superadmin.' + descKey, descKey)}</p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+          <h3 className="text-lg font-bold text-brand-dark">{t('superadmin.add_content_key', 'Ajouter une clé')}</h3>
+          <div className={`grid grid-cols-1 ${allowZone ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
+            <input
+              value={newContentKey}
+              onChange={(e) => setNewContentKey(e.target.value)}
+              placeholder={t('superadmin.key', 'Clé (ex: home.hero_badge)')}
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+            />
+            <input
+              value={newContentEn}
+              onChange={(e) => setNewContentEn(e.target.value)}
+              placeholder={t('superadmin.english', 'Anglais')}
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+            />
+            <input
+              value={newContentFr}
+              onChange={(e) => setNewContentFr(e.target.value)}
+              placeholder={t('superadmin.french', 'Français')}
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+            />
+            {allowZone && (
+              <select
+                value={newContentZone}
+                onChange={(e) => setNewContentZone(e.target.value)}
+                className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+              >
+                {CONTENT_ZONES.map(zone => (
+                  <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
+                ))}
+              </select>
+            )}
+          </div>
+          <button
+            onClick={handleAddHomeContent}
+            disabled={!newContentKey}
+            className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+          >
+            <Check size={16} />
+            {t('superadmin.add', 'Ajouter')}
+          </button>
+        </div>
+
+        {homeContentLoading ? (
+          <div className="flex items-center justify-center h-64">
+            <Loader2 className="animate-spin text-brand-green" size={48} />
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 gap-6">
+            {allKeys.map((key) => {
+              const draft = homeContentDraft[key] ?? {};
+              const isHardcoded = pageKeys.includes(key);
+              return (
+                <div key={key} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">{key}</label>
+                    <button
+                      onClick={() => handleDeleteHomeContent(key)}
+                      disabled={homeContentDeleting === key}
+                      className="flex items-center gap-1 text-rose-600 hover:text-rose-700 text-sm font-black disabled:opacity-50"
+                    >
+                      {homeContentDeleting === key ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
+                      {isHardcoded ? t('superadmin.reset', 'Reset') : t('superadmin.delete', 'Supprimer')}
+                    </button>
+                  </div>
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.english', 'Anglais')}</label>
+                      <textarea
+                        value={draft.en ?? i18n.t(key, { lng: 'en' })}
+                        onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], en: e.target.value } }))}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.french', 'Français')}</label>
+                      <textarea
+                        value={draft.fr ?? i18n.t(key, { lng: 'fr' })}
+                        onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], fr: e.target.value } }))}
+                        rows={3}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                      />
+                    </div>
+                  </div>
+                  {!isHardcoded && allowZone && (
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.placement', 'Placement')}</label>
+                      <select
+                        value={draft.zone ?? 'bottom'}
+                        onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], zone: e.target.value } }))}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                      >
+                        {CONTENT_ZONES.map(zone => (
+                          <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
+                        ))}
+                      </select>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => handleSaveHomeContent(key)}
+                    disabled={homeContentSaving === key}
+                    className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+                  >
+                    {homeContentSaving === key ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                    {t('common.save', 'Enregistrer')}
+                  </button>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </motion.div>
+    );
   };
 
   const renderContent = () => {
@@ -1427,128 +1565,16 @@ const SuperAdminDashboard = () => {
         return <ObjectivesTab />;
 
       case 'home-content':
-        return (
-          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
-            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
-              <h2 className="text-2xl font-bold text-brand-dark flex items-center gap-3 mb-2">
-                <div className="w-10 h-10 rounded-xl bg-brand-yellow/10 flex items-center justify-center">
-                  <Layout className="text-brand-yellow" size={22} />
-                </div>
-                {t('superadmin.tab_home_content', 'Contenu Accueil')}
-              </h2>
-              <p className="text-gray-500 text-sm">{t('superadmin.home_content_desc', "Modifiez les textes affichés sur la page d'accueil.")}</p>
-            </div>
+        return renderPageContentEditor(HOME_CONTENT_KEYS, 'home.', 'tab_home_content', 'home_content_desc', true);
 
-            <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-              <h3 className="text-lg font-bold text-brand-dark">{t('superadmin.add_content_key', 'Ajouter une clé')}</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-4 gap-4">
-                <input
-                  value={newContentKey}
-                  onChange={(e) => setNewContentKey(e.target.value)}
-                  placeholder={t('superadmin.key', 'Clé (ex: home.hero_badge)')}
-                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
-                />
-                <input
-                  value={newContentEn}
-                  onChange={(e) => setNewContentEn(e.target.value)}
-                  placeholder={t('superadmin.english', 'Anglais')}
-                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
-                />
-                <input
-                  value={newContentFr}
-                  onChange={(e) => setNewContentFr(e.target.value)}
-                  placeholder={t('superadmin.french', 'Français')}
-                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
-                />
-                <select
-                  value={newContentZone}
-                  onChange={(e) => setNewContentZone(e.target.value)}
-                  className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
-                >
-                  {CONTENT_ZONES.map(zone => (
-                    <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
-                  ))}
-                </select>
-              </div>
-              <button
-                onClick={handleAddHomeContent}
-                disabled={!newContentKey}
-                className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
-              >
-                <Check size={16} />
-                {t('superadmin.add', 'Ajouter')}
-              </button>
-            </div>
+      case 'about-content':
+        return renderPageContentEditor(ABOUT_CONTENT_KEYS, 'about_page.', 'tab_about_content', 'about_content_desc', false);
 
-            {homeContentLoading ? (
-              <div className="flex items-center justify-center h-64">
-                <Loader2 className="animate-spin text-brand-green" size={48} />
-              </div>
-            ) : (
-              <div className="grid grid-cols-1 gap-6">
-                {Array.from(new Set([...HOME_CONTENT_KEYS, ...Object.keys(homeContentDraft)])).map((key) => {
-                  const draft = homeContentDraft[key] ?? {};
-                  const isHardcoded = HOME_CONTENT_KEYS.includes(key);
-                  return (
-                    <div key={key} className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
-                      <div className="flex items-center justify-between">
-                        <label className="block text-xs font-black text-gray-500 uppercase tracking-widest">{key}</label>
-                        <button
-                          onClick={() => handleDeleteHomeContent(key)}
-                          disabled={homeContentDeleting === key}
-                          className="flex items-center gap-1 text-rose-600 hover:text-rose-700 text-sm font-black disabled:opacity-50"
-                        >
-                          {homeContentDeleting === key ? <Loader2 size={14} className="animate-spin" /> : <Trash2 size={14} />}
-                          {isHardcoded ? t('superadmin.reset', 'Reset') : t('superadmin.delete', 'Supprimer')}
-                        </button>
-                      </div>
-                      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.english', 'Anglais')}</label>
-                          <textarea
-                            value={draft.en ?? i18n.t(key, { lng: 'en' })}
-                            onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], en: e.target.value } }))}
-                            rows={3}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
-                          />
-                        </div>
-                        <div className="space-y-1">
-                          <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.french', 'Français')}</label>
-                          <textarea
-                            value={draft.fr ?? i18n.t(key, { lng: 'fr' })}
-                            onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], fr: e.target.value } }))}
-                            rows={3}
-                            className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
-                          />
-                        </div>
-                      </div>
-                      <div className="space-y-1">
-                        <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.placement', 'Placement')}</label>
-                        <select
-                          value={draft.zone ?? 'bottom'}
-                          onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], zone: e.target.value } }))}
-                          className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
-                        >
-                          {CONTENT_ZONES.map(zone => (
-                            <option key={zone} value={zone}>{t('superadmin.zone_' + zone.replace(/-/g, '_'), zone)}</option>
-                          ))}
-                        </select>
-                      </div>
-                      <button
-                        onClick={() => handleSaveHomeContent(key)}
-                        disabled={homeContentSaving === key}
-                        className="flex items-center gap-2 bg-brand-dark text-white px-5 py-2.5 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
-                      >
-                        {homeContentSaving === key ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                        {t('common.save', 'Enregistrer')}
-                      </button>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-          </motion.div>
-        );
+      case 'services-content':
+        return renderPageContentEditor(SERVICES_CONTENT_KEYS, 'services_page.', 'tab_services_content', 'services_content_desc', false);
+
+      case 'contact-content':
+        return renderPageContentEditor(CONTACT_CONTENT_KEYS, 'contact_page.', 'tab_contact_content', 'contact_content_desc', false);
 
       case 'dashboard':
       default:
@@ -1954,6 +1980,33 @@ const SuperAdminDashboard = () => {
               </div>
               <span>{t('superadmin.home_content', 'Contenu Accueil')}</span>
             </button>
+            <button
+              onClick={() => handleTabChange('about-content')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'about-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Layout size={18} />
+              </div>
+              <span>{t('superadmin.about_content', 'Contenu À propos')}</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('services-content')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'services-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Layout size={18} />
+              </div>
+              <span>{t('superadmin.services_content', 'Contenu Services')}</span>
+            </button>
+            <button
+              onClick={() => handleTabChange('contact-content')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'contact-content' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <Layout size={18} />
+              </div>
+              <span>{t('superadmin.contact_content', 'Contenu Contact')}</span>
+            </button>
           </nav>
         </div>
         <div className="px-6 py-4 border-t border-gray-900/50">
@@ -1997,6 +2050,9 @@ const SuperAdminDashboard = () => {
                 {activeTab === 'messages' && t('superadmin.tab_messages', 'Messagerie Stratégique')}
                 {activeTab === 'objectives' && t('superadmin.tab_objectives', 'Objectifs Produits')}
                 {activeTab === 'home-content' && t('superadmin.tab_home_content', 'Contenu Accueil')}
+                {activeTab === 'about-content' && t('superadmin.tab_about_content', 'Contenu À propos')}
+                {activeTab === 'services-content' && t('superadmin.tab_services_content', 'Contenu Services')}
+                {activeTab === 'contact-content' && t('superadmin.tab_contact_content', 'Contenu Contact')}
               </h1>
               <p className="text-gray-500 text-sm font-medium mt-1">{t('admin.secure_access_subtitle', 'Vue Super Administrateur - Accès Complet Sécurisé')}</p>
             </div>

@@ -1,11 +1,49 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Phone, Mail, Loader2, CheckCircle, Send } from 'lucide-react';
 import { useTranslation } from 'react-i18next';
-import { messagesService } from '../services/api';
+import api, { messagesService } from '../services/api';
+
+export const CONTACT_CONTENT_KEYS: string[] = [
+  'contact_page.title_prefix',
+  'contact_page.title_highlight',
+  'contact_page.subtitle',
+  'contact_page.success_message',
+  'contact_page.headquarters',
+  'contact_page.address',
+  'contact_page.phone',
+  'contact_page.manager',
+  'contact_page.email',
+  'contact_page.form.full_name',
+  'contact_page.form.full_name_placeholder',
+  'contact_page.form.email',
+  'contact_page.form.email_placeholder',
+  'contact_page.form.subject',
+  'contact_page.form.subject_placeholder',
+  'contact_page.form.message',
+  'contact_page.form.message_placeholder',
+  'contact_page.form.sending',
+  'contact_page.form.submit',
+  'contact_page.error_message',
+];
 
 const Contact = () => {
-  const { t } = useTranslation();
+  const { t, i18n } = useTranslation();
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string }>>({});
+  const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
+
+  useEffect(() => {
+    api.get('/content').then(res => setContent(res.data)).catch(() => {});
+  }, []);
+
+  const getContent = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'string') return value || t(key);
+    return value?.[lang] ?? t(key);
+  };
+
+  const customKeys = Object.keys(content).filter(key => !CONTACT_CONTENT_KEYS.includes(key) && (typeof content[key] === 'string' ? (content[key] as string).length > 0 : (content[key]?.en || content[key]?.fr)));
+
   const [isSending, setIsSending] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
@@ -32,7 +70,7 @@ const Contact = () => {
       }, 5000);
     } catch (error) {
       console.error('Failed to send message:', error);
-      alert(t('contact_page.error_message'));
+      alert(getContent('contact_page.error_message'));
     } finally {
       setIsSending(false);
     }
@@ -49,7 +87,7 @@ const Contact = () => {
             className="fixed bottom-8 right-8 z-50 bg-gray-900 text-white px-6 py-4 rounded-2xl shadow-2xl border border-gray-700 flex items-center space-x-3"
           >
             <CheckCircle size={20} className="text-brand-green" />
-            <span className="font-medium text-sm">{t('contact_page.success_message')}</span>
+            <span className="font-medium text-sm">{getContent('contact_page.success_message')}</span>
           </motion.div>
         )}
       </AnimatePresence>
@@ -62,11 +100,11 @@ const Contact = () => {
           className="text-center mb-16"
         >
           <h1 className="text-4xl md:text-5xl font-bold text-brand-dark mb-6">
-            {t('contact_page.title_prefix')}<span className="text-brand-green">{t('contact_page.title_highlight')}</span>
+            {getContent('contact_page.title_prefix')}<span className="text-brand-green">{getContent('contact_page.title_highlight')}</span>
           </h1>
           <div className="w-24 h-1 bg-brand-yellow mx-auto mb-8 rounded-full"></div>
           <p className="text-xl text-gray-600 max-w-2xl mx-auto leading-relaxed">
-            {t('contact_page.subtitle')}
+            {getContent('contact_page.subtitle')}
           </p>
         </motion.div>
 
@@ -82,8 +120,8 @@ const Contact = () => {
                 <MapPin className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-brand-dark text-lg mb-1">{t('contact_page.headquarters')}</h3>
-                <p className="text-gray-600 whitespace-pre-line">{t('contact_page.address')}</p>
+                <h3 className="font-bold text-brand-dark text-lg mb-1">{getContent('contact_page.headquarters')}</h3>
+                <p className="text-gray-600 whitespace-pre-line">{getContent('contact_page.address')}</p>
               </div>
             </div>
 
@@ -92,9 +130,9 @@ const Contact = () => {
                 <Phone className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-brand-dark text-lg mb-1">{t('contact_page.phone')}</h3>
+                <h3 className="font-bold text-brand-dark text-lg mb-1">{getContent('contact_page.phone')}</h3>
                 <p className="text-gray-600">+221 77 555 23 49</p>
-                <p className="text-sm text-gray-400 mt-1">{t('contact_page.manager')}</p>
+                <p className="text-sm text-gray-400 mt-1">{getContent('contact_page.manager')}</p>
               </div>
             </div>
 
@@ -103,7 +141,7 @@ const Contact = () => {
                 <Mail className="w-6 h-6" />
               </div>
               <div>
-                <h3 className="font-bold text-brand-dark text-lg mb-1">{t('contact_page.email')}</h3>
+                <h3 className="font-bold text-brand-dark text-lg mb-1">{getContent('contact_page.email')}</h3>
                 <p className="text-gray-600">contact@mbc-suarl.com</p>
               </div>
             </div>
@@ -118,21 +156,21 @@ const Contact = () => {
             <form noValidate onSubmit={handleSubmit} className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 relative">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">{t('contact_page.form.full_name')}</label>
-                  <input name="sender" required type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={t('contact_page.form.full_name_placeholder')} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{getContent('contact_page.form.full_name')}</label>
+                  <input name="sender" required type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={getContent('contact_page.form.full_name_placeholder')} />
                 </div>
                 <div>
-                  <label className="block text-sm font-bold text-gray-700 mb-2">{t('contact_page.form.email')}</label>
-                  <input name="email" required type="email" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={t('contact_page.form.email_placeholder')} />
+                  <label className="block text-sm font-bold text-gray-700 mb-2">{getContent('contact_page.form.email')}</label>
+                  <input name="email" required type="email" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={getContent('contact_page.form.email_placeholder')} />
                 </div>
               </div>
               <div className="mb-8">
-                <label className="block text-sm font-bold text-gray-700 mb-2">{t('contact_page.form.subject')}</label>
-                <input name="subject" required type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={t('contact_page.form.subject_placeholder')} />
+                <label className="block text-sm font-bold text-gray-700 mb-2">{getContent('contact_page.form.subject')}</label>
+                <input name="subject" required type="text" className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all" placeholder={getContent('contact_page.form.subject_placeholder')} />
               </div>
               <div className="mb-8">
-                <label className="block text-sm font-bold text-gray-700 mb-2">{t('contact_page.form.message')}</label>
-                <textarea name="content" required rows={5} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all resize-none" placeholder={t('contact_page.form.message_placeholder')}></textarea>
+                <label className="block text-sm font-bold text-gray-700 mb-2">{getContent('contact_page.form.message')}</label>
+                <textarea name="content" required rows={5} className="w-full px-4 py-3 rounded-xl border border-gray-300 focus:ring-2 focus:ring-brand-green focus:border-brand-green outline-none transition-all resize-none" placeholder={getContent('contact_page.form.message_placeholder')}></textarea>
               </div>
               <button 
                 type="submit" 
@@ -142,18 +180,30 @@ const Contact = () => {
                 {isSending ? (
                   <>
                     <Loader2 className="w-5 h-5 mr-3 animate-spin" />
-                    {t('contact_page.form.sending')}
+                    {getContent('contact_page.form.sending')}
                   </>
                 ) : (
                   <>
                     <Send className="w-5 h-5 mr-3" />
-                    {t('contact_page.form.submit')}
+                    {getContent('contact_page.form.submit')}
                   </>
                 )}
               </button>
             </form>
           </motion.div>
         </div>
+      {customKeys.length > 0 && (
+        <section className="py-16">
+          <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 space-y-8">
+            {customKeys.map(key => (
+              <div key={key} className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100">
+                <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
+                <p className="text-gray-600">{getContent(key)}</p>
+              </div>
+            ))}
+          </div>
+        </section>
+      )}
       </div>
     </div>
   );
