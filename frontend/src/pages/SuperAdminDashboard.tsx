@@ -735,7 +735,7 @@ const SuperAdminDashboard = () => {
                       />
                     </div>
                   </div>
-                  {!isHardcoded && allowZone && (
+                  {allowZone && (
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.placement', 'Placement')}</label>
                       <select
