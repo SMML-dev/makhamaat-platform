@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
@@ -16,7 +16,12 @@ const UserDashboard = () => {
   };
   const [products, setProducts] = useState<any[]>([]);
   const [orders, setOrders] = useState<any[]>([]);
-  const [stats, setStats] = useState({ activeOrders: 0, totalSpent: 0, inDelivery: 0 });
+  const stats = useMemo(() => {
+    const activeOrders = (orders || []).filter((o: any) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
+    const inDelivery = (orders || []).filter((o: any) => ['PENDING', 'PREPARING', 'IN_TRANSIT'].includes(o.status)).length;
+    const totalSpent = (orders || []).filter((o: any) => o.status !== 'CANCELLED').reduce((sum: number, o: any) => sum + ((o.quantity || 1) * (o.productId?.price || 0)), 0);
+    return { activeOrders, totalSpent, inDelivery };
+  }, [orders]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
   const [voucherSettings, setVoucherSettings] = useState({ goal: 500000, goldDiscount: 5, platinumCashback: 10, vouchersEnabled: true });
@@ -318,6 +323,7 @@ const UserDashboard = () => {
         setIsCheckoutOpen(false);
         setCheckoutStep(1);
         updateTab('orders');
+        activitiesService.getUserOrders().then((data) => setOrders(data || []));
       } else {
         // Initiate real payment session (Simulation)
         showToast(t('user.init_payment', "Initialisation du paiement sécurisé..."));
@@ -380,6 +386,7 @@ const UserDashboard = () => {
     if (paymentStatus === 'success') {
       showToast(t('user.payment_success', '✅ Paiement confirmé ! Votre commande est en cours de traitement.'), 'success');
       setCart([]);
+      activitiesService.getUserOrders().then((data) => setOrders(data || []));
       // Clean the URL param so it doesn't re-trigger on refresh
       const newParams = new URLSearchParams(searchParams);
       newParams.delete('payment');
@@ -421,10 +428,7 @@ const UserDashboard = () => {
         previousOrdersRef.current = ordersData || [];
         setOrders(ordersData || []);
 
-        const activeOrdersCount = (ordersData || []).filter((o: any) => o.status !== 'COMPLETED' && o.status !== 'CANCELLED').length;
-        const inDeliveryCount = (ordersData || []).filter((o: any) => ['PENDING', 'PREPARING', 'IN_TRANSIT'].includes(o.status)).length;
-        const totalSpentCount = (ordersData || []).filter((o: any) => o.status !== 'CANCELLED').reduce((sum: number, o: any) => sum + ((o.quantity || 1) * (o.productId?.price || 0)), 0);
-        setStats({ activeOrders: activeOrdersCount, totalSpent: totalSpentCount, inDelivery: inDeliveryCount });
+        // Stats are derived reactively from the `orders` state via useMemo
 
         if (messagesData && previousMessagesRef.current.length > 0) {
           const oldIds = previousMessagesRef.current.map((m: any) => m._id);
