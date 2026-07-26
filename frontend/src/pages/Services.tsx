@@ -54,8 +54,8 @@ const Services = () => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
       if (SERVICES_CONTENT_KEYS.includes(key)) return false;
-      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
-      return value?.zone === zone && (value?.en || value?.fr);
+      if (typeof value === 'string') return key.startsWith('services_page.') && zone === 'bottom' && value.length > 0;
+      return key.startsWith('services_page.') && value?.zone === zone && (value?.en || value?.fr);
     });
     if (keys.length === 0) return null;
     return (

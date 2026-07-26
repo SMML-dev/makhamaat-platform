@@ -59,8 +59,8 @@ const Contact = () => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
       if (CONTACT_CONTENT_KEYS.includes(key)) return false;
-      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
-      return value?.zone === zone && (value?.en || value?.fr);
+      if (typeof value === 'string') return key.startsWith('contact_page.') && zone === 'bottom' && value.length > 0;
+      return key.startsWith('contact_page.') && value?.zone === zone && (value?.en || value?.fr);
     });
     if (keys.length === 0) return null;
     return (
