@@ -27,7 +27,7 @@ export class UsersService implements OnModuleInit {
         const passwordHashA = await bcrypt.hash('admin123', 10);
         await this.userModel.create({
           name: 'Administrateur',
-          email: 'admin@mbc-suarl.com',
+          email: 'contact@mbc-suarl.com',
           passwordHash: passwordHashA,
           role: Role.ADMIN,
         });

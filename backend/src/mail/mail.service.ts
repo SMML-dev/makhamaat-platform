@@ -164,7 +164,7 @@ export class MailService {
       await this.transporter.sendMail({
         from: '"Makhamaat Platform" <contact@mbc-suarl.com>',
         to: directData.to,
-        replyTo: directData.fromEmail,
+        replyTo: 'contact@mbc-suarl.com',
         subject: directData.subject,
         html: `
           <div style="font-family: Arial, sans-serif; padding: 30px; border: 1px solid #e0e0e0; border-radius: 20px; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
