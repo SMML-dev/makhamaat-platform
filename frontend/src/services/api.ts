@@ -199,6 +199,18 @@ export const activitiesService = {
   getActorStats: async (actorId: string) => {
     const response = await api.get(`/activities/stats/${actorId}`);
     return response.data;
+  },
+  downloadReceipt: async (id: string, orderNumber?: string) => {
+    const response = await api.get(`/activities/${id}/receipt`, { responseType: 'blob' });
+    const blob = new Blob([response.data], { type: 'application/pdf' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `receipt-${orderNumber || id}.pdf`);
+    document.body.appendChild(link);
+    link.click();
+    link.remove();
+    window.URL.revokeObjectURL(url);
   }
 };
 

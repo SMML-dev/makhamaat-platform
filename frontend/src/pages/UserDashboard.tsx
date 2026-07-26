@@ -2,7 +2,7 @@ import { useState, useEffect, useRef, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
-import { Package, ShoppingBag, Truck, LayoutDashboard, LogOut, Search, ChevronRight, TrendingUp, CheckCircle, Clock, MapPin, X, Plus, Minus, AlertTriangle, Loader2, Star, PackageOpen, CreditCard, Bell, Calendar, Camera, Award, Zap, Crown, UserCheck } from 'lucide-react';
+import { Package, ShoppingBag, Truck, LayoutDashboard, LogOut, Search, ChevronRight, TrendingUp, CheckCircle, Clock, MapPin, X, Plus, Minus, AlertTriangle, Loader2, Star, PackageOpen, CreditCard, Bell, Calendar, Camera, Award, Zap, Crown, UserCheck, Receipt } from 'lucide-react';
 import api, { authService, productsService, activitiesService, messagesService, paymentService } from '../services/api';
 
 const UserDashboard = () => {
@@ -1769,6 +1769,13 @@ const UserDashboard = () => {
                     className="flex-1 py-4 premium-gradient text-white font-bold rounded-2xl shadow-xl shadow-brand-green/30 hover:-translate-y-1 transition-all flex items-center justify-center gap-2"
                   >
                     {t('user.reorder', "Order again")}
+                  </button>
+                  <button
+                    onClick={() => activitiesService.downloadReceipt(selectedOrder._id, selectedOrder.orderNumber)}
+                    className="flex-1 py-4 bg-gray-100 text-brand-dark font-bold rounded-2xl hover:bg-gray-200 transition-colors flex items-center justify-center gap-2"
+                  >
+                    <Receipt size={18} />
+                    {t('user.download_receipt', "Receipt")}
                   </button>
                 </div>
               </div>

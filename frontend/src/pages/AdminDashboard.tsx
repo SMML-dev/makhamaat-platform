@@ -41,7 +41,8 @@ import {
   QrCode,
   Sun,
   Moon,
-  Truck
+  Truck,
+  Receipt
 } from "lucide-react";
 import { senegalMarketData } from "../data/senegalMarketData";
 import {
@@ -1513,12 +1514,13 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                 <th className="px-10 py-8">{t("admin.ledger_volume")}</th>
                 <th className="px-10 py-8">{t("admin.order_status", "Status")}</th>
                 <th className="px-10 py-8">{t("common.date")}</th>
+                <th className="px-10 py-8">{t("admin.actions", "Actions")}</th>
               </tr>
             </thead>
             <tbody className="text-sm font-bold">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={5} className="text-center py-20 text-gray-500 font-black uppercase tracking-widest text-[10px]">{t("admin.no_orders", "No orders found.")}</td>
+                  <td colSpan={6} className="text-center py-20 text-gray-500 font-black uppercase tracking-widest text-[10px]">{t("admin.no_orders", "No orders found.")}</td>
                 </tr>
               ) : (
                 orders.map((order: any) => (
@@ -1545,6 +1547,15 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                     </td>
                     <td className="px-10 py-6 text-gray-400">
                       {new Date(order.createdAt).toLocaleDateString()}
+                    </td>
+                    <td className="px-10 py-6">
+                      <button
+                        onClick={() => activitiesService.downloadReceipt(order._id, order.orderNumber)}
+                        className="p-2 rounded-xl bg-white/5 hover:bg-brand-emerald/20 text-brand-emerald transition-colors"
+                        title={t("admin.download_receipt", "Download receipt")}
+                      >
+                        <Receipt size={18} />
+                      </button>
                     </td>
                   </tr>
                 ))

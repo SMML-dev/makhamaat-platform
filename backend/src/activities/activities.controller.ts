@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, Query, Req, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, Put, Delete, UseGuards, Query, Req, Res, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { ActivitiesService } from './activities.service';
 import { JwtAuthGuard } from '../auth/guards/jwt-auth.guard';
 import { RolesGuard } from '../auth/guards/roles.guard';
@@ -6,6 +6,8 @@ import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/schemas/user.schema';
 
 import { UsersService } from '../users/users.service';
+import { Response } from 'express';
+import * as PDFDocument from 'pdfkit';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activities')
@@ -95,6 +97,39 @@ export class ActivitiesController {
   @Put(':id')
   update(@Param('id') id: string, @Body() updateActivityDto: any, @Req() req) {
     return this.activitiesService.update(id, updateActivityDto, req.user.userId);
+  }
+
+  @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
+  @Get(':id/receipt')
+  async generateReceipt(@Param('id') id: string, @Req() req, @Res() res: Response) {
+    const activity = await this.activitiesService.findOne(id);
+    if (!activity) {
+      throw new NotFoundException('Commande introuvable.');
+    }
+    if (req.user.role === Role.USER && activity.actorId?.toString?.() !== req.user.userId) {
+      throw new ForbiddenException('Vous ne pouvez accéder qu\'à vos propres reçus.');
+    }
+    const user = await this.usersService.findById(activity.actorId?.toString?.() || req.user.userId);
+    const product: any = activity.productId;
+    const unitPrice = product?.price || 0;
+    const total = unitPrice * (activity.quantity || 1);
+
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="receipt-${activity.orderNumber || id}.pdf"`);
+    const doc = new (PDFDocument as any)();
+    doc.pipe(res);
+    doc.fontSize(20).text('Makhamaat', 50, 50);
+    doc.fontSize(14).text(`Receipt: ${activity.orderNumber || id}`, 50, 90);
+    doc.fontSize(10).text(`Date: ${new Date((activity as any).createdAt).toLocaleString()}`, 50, 120);
+    doc.text(`Customer: ${user?.name || 'N/A'} (${user?.email || activity.actorId || 'N/A'})`, 50, 135);
+    doc.text(`Payment method: ${activity.paymentMethod}`, 50, 150);
+    doc.text(`Status: ${activity.status} / Payment: ${activity.paymentStatus}`, 50, 165);
+    doc.moveDown();
+    doc.text(`Product: ${product?.localizedName || product?.name || 'N/A'}`, 50, 200);
+    doc.text(`Quantity: ${activity.quantity || 1}`, 50, 215);
+    doc.text(`Unit price: ${unitPrice.toLocaleString()} FCFA`, 50, 230);
+    doc.fontSize(12).text(`Total: ${total.toLocaleString()} FCFA`, 50, 250);
+    doc.end();
   }
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
