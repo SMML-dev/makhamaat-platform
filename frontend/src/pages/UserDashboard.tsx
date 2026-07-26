@@ -3,7 +3,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import { Package, ShoppingBag, Truck, LayoutDashboard, LogOut, Search, ChevronRight, TrendingUp, CheckCircle, Clock, MapPin, X, Plus, Minus, AlertTriangle, Loader2, Star, PackageOpen, CreditCard, Bell, Calendar, Camera, Award, Zap, Crown, UserCheck } from 'lucide-react';
-import { authService, productsService, activitiesService, messagesService, paymentService } from '../services/api';
+import api, { authService, productsService, activitiesService, messagesService, paymentService } from '../services/api';
 
 const UserDashboard = () => {
   const { t, i18n } = useTranslation();
@@ -19,6 +19,7 @@ const UserDashboard = () => {
   const [stats, setStats] = useState({ activeOrders: 0, totalSpent: 0, inDelivery: 0 });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [voucherSettings, setVoucherSettings] = useState({ goal: 500000 });
 
   // Cart State
   const [cart, setCart] = useState<any[]>([]);
@@ -211,9 +212,9 @@ const UserDashboard = () => {
   };
 
   // Loyalty calculation logic moved to component level for global access (e.g., benefits modal)
-  const VOUCHER_GOAL = 500000;
-  const loyaltyProgress = stats.totalSpent > 0 ? ((stats.totalSpent % VOUCHER_GOAL) / VOUCHER_GOAL * 100) : 0;
-  const earnedVouchers = Math.floor(stats.totalSpent / VOUCHER_GOAL);
+  const voucherGoal = voucherSettings.goal || 500000;
+  const loyaltyProgress = stats.totalSpent > 0 ? ((stats.totalSpent % voucherGoal) / voucherGoal * 100) : 0;
+  const earnedVouchers = Math.floor(stats.totalSpent / voucherGoal);
   const currentTier = stats.totalSpent >= 2000000 ? 'Platinum' : stats.totalSpent >= 500000 ? 'Gold' : 'Privilege';
 
   let tierName = t('user.tier_privilege', "Compte Privilège");
@@ -448,6 +449,20 @@ const UserDashboard = () => {
     const interval = setInterval(fetchData, 15000);
     return () => clearInterval(interval);
   }, [activeTab, i18n.language]);
+
+  useEffect(() => {
+    const fetchSettings = async () => {
+      try {
+        const res = await api.get('/content');
+        const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
+        const goal = parseInt(res.data['loyalty.voucher_goal']?.[lang] || res.data['loyalty.voucher_goal']?.en || '500000', 10);
+        setVoucherSettings(prev => ({ ...prev, goal: isNaN(goal) ? 500000 : goal }));
+      } catch (error) {
+        console.error('Failed to fetch voucher settings', error);
+      }
+    };
+    fetchSettings();
+  }, []);
 
   const containerVariants = {
     hidden: { opacity: 0 },
@@ -1003,7 +1018,7 @@ const UserDashboard = () => {
                         ></motion.div>
                       </div>
                       <p className="text-[10px] text-gray-500 font-bold leading-relaxed">
-                        {t('user.next_voucher_in', { amount: (VOUCHER_GOAL - (stats.totalSpent % VOUCHER_GOAL)).toLocaleString() })}
+                        {t('user.next_voucher_in', { amount: (voucherGoal - (stats.totalSpent % voucherGoal)).toLocaleString() })}
                       </p>
                     </div>
 

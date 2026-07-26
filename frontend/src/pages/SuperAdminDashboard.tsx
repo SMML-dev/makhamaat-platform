@@ -69,6 +69,20 @@ const SuperAdminDashboard = () => {
       fetchHomeContent();
     }
   }, [activeTab]);
+
+  useEffect(() => {
+    if (activeTab === 'voucher') {
+      const fetchVoucher = async () => {
+        try {
+          const res = await api.get('/content');
+          setVoucherGoal(res.data['loyalty.voucher_goal']?.en || '500000');
+        } catch (error) {
+          console.error('Failed to fetch voucher goal', error);
+        }
+      };
+      fetchVoucher();
+    }
+  }, [activeTab]);
   
   const [isAddUserModalOpen, setIsAddUserModalOpen] = useState(false);
   const [newUser, setNewUser] = useState({ name: '', email: '', password: '', role: 'USER' });
@@ -146,6 +160,8 @@ const SuperAdminDashboard = () => {
   const [newContentZone, setNewContentZone] = useState('bottom');
   const [newContentIcon, setNewContentIcon] = useState('');
   const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact' | 'privacy' | 'terms'>('home');
+  const [voucherGoal, setVoucherGoal] = useState('500000');
+  const [isVoucherSaving, setIsVoucherSaving] = useState(false);
 
   const PAGES_CONFIG = {
     home: { labelKey: 'page_home', titleKey: 'tab_home_content', descKey: 'home_content_desc', keys: HOME_CONTENT_KEYS, prefix: 'home.', zones: CONTENT_ZONES },
@@ -1592,6 +1608,46 @@ const SuperAdminDashboard = () => {
           </motion.div>
         );
 
+      case 'voucher':
+        return (
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-8">
+            <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+              <h2 className="text-2xl font-bold text-brand-dark mb-2">{t('superadmin.voucher_settings', 'Paramètres des bons')}</h2>
+              <p className="text-gray-500 text-sm mb-6">{t('superadmin.voucher_settings_desc', 'Montant à dépenser pour gagner un bon de fidélité')}</p>
+              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
+                <div className="flex-1 w-full">
+                  <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">{t('superadmin.voucher_goal', 'Seuil (FCFA)')}</label>
+                  <input
+                    type="number"
+                    min="1"
+                    value={voucherGoal}
+                    onChange={(e) => setVoucherGoal(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                  />
+                </div>
+                <button
+                  onClick={async () => {
+                    setIsVoucherSaving(true);
+                    try {
+                      await api.post('/content', { key: 'loyalty.voucher_goal', en: voucherGoal, fr: voucherGoal, zone: 'system' });
+                      showSaToast(t('superadmin.voucher_saved', 'Seuil enregistré'));
+                    } catch (error) {
+                      console.error('Failed to save voucher goal', error);
+                    } finally {
+                      setIsVoucherSaving(false);
+                    }
+                  }}
+                  disabled={isVoucherSaving}
+                  className="flex items-center gap-2 bg-brand-dark text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+                >
+                  {isVoucherSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                  {t('superadmin.save', 'Enregistrer')}
+                </button>
+              </div>
+            </div>
+          </motion.div>
+        );
+
       case 'objectives':
         return <ObjectivesTab />;
 
@@ -2026,6 +2082,15 @@ const SuperAdminDashboard = () => {
               </div>
               <span>{t('superadmin.pages_content', 'Pages Content')}</span>
             </button>
+            <button
+              onClick={() => handleTabChange('voucher')}
+              className={`flex items-center space-x-3 w-full px-4 py-3 rounded-xl font-bold transition-all whitespace-nowrap border group ${activeTab === 'voucher' ? 'bg-white/10 text-brand-yellow border-white/10 shadow-lg' : 'text-gray-400 hover:bg-white/5 hover:text-white border-transparent'}`}
+            >
+              <div className="w-5 flex items-center justify-center shrink-0 group-hover:scale-110 transition-transform duration-300">
+                <DollarSign size={18} />
+              </div>
+              <span>{t('superadmin.voucher', 'Bons')}</span>
+            </button>
           </nav>
         </div>
         <div className="px-6 py-4 border-t border-gray-900/50">
@@ -2069,6 +2134,7 @@ const SuperAdminDashboard = () => {
                 {activeTab === 'messages' && t('superadmin.tab_messages', 'Messagerie Stratégique')}
                 {activeTab === 'objectives' && t('superadmin.tab_objectives', 'Objectifs Produits')}
                 {activeTab === 'pages-content' && t('superadmin.tab_pages_content', 'Pages Content')}
+                {activeTab === 'voucher' && t('superadmin.tab_voucher', 'Paramètres des bons')}
               </h1>
               <p className="text-gray-500 text-sm font-medium mt-1">{t('admin.secure_access_subtitle', 'Vue Super Administrateur - Accès Complet Sécurisé')}</p>
             </div>
