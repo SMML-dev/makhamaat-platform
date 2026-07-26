@@ -111,8 +111,12 @@ export class ActivitiesController {
     }
     const user = await this.usersService.findById(activity.actorId?.toString?.() || req.user.userId);
     const product: any = activity.productId;
+    const quantity = activity.quantity || 1;
     const unitPrice = product?.price || 0;
-    const total = unitPrice * (activity.quantity || 1);
+    const total = unitPrice * quantity;
+    const fmt = (n: number) => n.toLocaleString('en-US');
+    const paymentLabel = activity.paymentStatus === 'PAID' || activity.status === 'COMPLETED' ? 'PAID' : 'PENDING';
+    const unitLabel = product?.unit ? ` ${product.unit}` : '';
 
     res.setHeader('Content-Type', 'application/pdf');
     res.setHeader('Content-Disposition', `attachment; filename="receipt-${activity.orderNumber || id}.pdf"`);
@@ -123,12 +127,12 @@ export class ActivitiesController {
     doc.fontSize(10).text(`Date: ${new Date((activity as any).createdAt).toLocaleString()}`, 50, 120);
     doc.text(`Customer: ${user?.name || 'N/A'} (${user?.email || activity.actorId || 'N/A'})`, 50, 135);
     doc.text(`Payment method: ${activity.paymentMethod}`, 50, 150);
-    doc.text(`Status: ${activity.status} / Payment: ${activity.paymentStatus}`, 50, 165);
+    doc.text(`Status: ${activity.status} / Payment: ${paymentLabel}`, 50, 165);
     doc.moveDown();
     doc.text(`Product: ${product?.localizedName || product?.name || 'N/A'}`, 50, 200);
-    doc.text(`Quantity: ${activity.quantity || 1}`, 50, 215);
-    doc.text(`Unit price: ${unitPrice.toLocaleString()} FCFA`, 50, 230);
-    doc.fontSize(12).text(`Total: ${total.toLocaleString()} FCFA`, 50, 250);
+    doc.text(`Quantity: ${quantity}${unitLabel}`, 50, 215);
+    doc.text(`Unit price: ${fmt(unitPrice)} FCFA`, 50, 230);
+    doc.fontSize(12).text(`Total: ${fmt(total)} FCFA`, 50, 250);
     doc.end();
   }
 
