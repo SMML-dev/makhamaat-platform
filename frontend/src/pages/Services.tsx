@@ -120,7 +120,7 @@ const Services = () => {
             >
               <div className="mr-6">
                 <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-brand-green group-hover:scale-110 group-hover:bg-brand-green group-hover:text-white transition-all">
-                  {renderIcon(getIcon(`services_page.items.${service.key}.title`) || service.defaultIcon, 'w-8 h-8 text-brand-green')}
+                  {renderIcon(getIcon(`services_page.items.${service.key}.title`) || service.defaultIcon, 'w-8 h-8 text-brand-green group-hover:text-white transition-colors')}
                 </div>
               </div>
               <div>
