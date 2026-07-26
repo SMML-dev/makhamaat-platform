@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ShieldCheck, Truck, Handshake, Target } from 'lucide-react';
+import { Target } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import aboutHero from '../assets/about_hero.png';
@@ -32,7 +33,7 @@ export const ABOUT_CONTENT_ZONES: string[] = ['top', 'after-hero', 'after-vision
 
 const About = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string; icon?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -44,7 +45,17 @@ const About = () => {
     if (typeof value === 'string') return value || t(key);
     return value?.[lang] ?? t(key);
   };
-
+  const getIcon = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'object' && value !== null) return value.icon;
+    return undefined;
+  };
+  const renderIcon = (name: string | undefined, className: string) => {
+    if (!name) return null;
+    const Comp = (LucideIcons as Record<string, any>)[name];
+    if (Comp && typeof Comp === 'function') return <Comp className={className} />;
+    return <span className={className}>{name}</span>;
+  };
   const renderDynamicZone = (zone: string, bgClass: string = 'bg-brand-light') => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
@@ -64,6 +75,7 @@ const About = () => {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
             >
+              {renderIcon(getIcon(key), 'w-8 h-8 text-brand-green mb-3')}
               <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
               <p className="text-gray-600">{getContent(key)}</p>
             </motion.div>
@@ -75,14 +87,14 @@ const About = () => {
 
 
   const cards = [
-    { key: 'fruits', icon: '🍋' },
-    { key: 'hydroponics', icon: '🌱' },
+    { key: 'fruits', defaultIcon: '🍋' },
+    { key: 'hydroponics', defaultIcon: '🌱' },
   ] as const;
 
   const commitments = [
-    { key: 'quality', icon: <ShieldCheck className="w-8 h-8 text-brand-yellow" /> },
-    { key: 'logistics', icon: <Truck className="w-8 h-8 text-brand-green" /> },
-    { key: 'proximity', icon: <Handshake className="w-8 h-8 text-brand-yellow" /> },
+    { key: 'quality', defaultIcon: 'ShieldCheck', color: 'text-brand-yellow' },
+    { key: 'logistics', defaultIcon: 'Truck', color: 'text-brand-green' },
+    { key: 'proximity', defaultIcon: 'Handshake', color: 'text-brand-yellow' },
   ] as const;
 
   return (
@@ -139,7 +151,7 @@ const About = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
               {cards.map((card) => (
                 <div key={card.key} className="group bg-white p-6 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300">
-                  <div className="text-3xl mb-4 group-hover:scale-125 transition-transform duration-300 inline-block">{card.icon}</div>
+                  <div className="text-3xl mb-4 group-hover:scale-125 transition-transform duration-300 inline-block">{renderIcon(getIcon(`about_page.cards.${card.key}.title`) || card.defaultIcon, 'w-8 h-8')}</div>
                   <h4 className="font-bold text-brand-dark mb-1 group-hover:text-brand-green transition-colors">{getContent(`about_page.cards.${card.key}.title`)}</h4>
                   <p className="text-sm text-gray-500 font-light">{getContent(`about_page.cards.${card.key}.desc`)}</p>
                 </div>
@@ -177,7 +189,7 @@ const About = () => {
                   className="group bg-white/[0.03] backdrop-blur-xl border border-white/10 p-10 rounded-[3rem] hover:bg-white/[0.08] transition-all hover:border-white/20 hover:shadow-2xl flex flex-col items-center text-center"
                 >
                   <div className="w-20 h-20 rounded-2xl bg-white/[0.05] border border-white/10 flex items-center justify-center mb-8 transform group-hover:scale-110 group-hover:rotate-6 transition-all duration-500 shadow-xl">
-                    {item.icon}
+                    {renderIcon(getIcon(`about_page.commitments.${item.key}.title`) || item.defaultIcon, `w-8 h-8 ${item.color}`)}
                   </div>
                   <h3 className="text-2xl font-bold mb-4 tracking-tight text-white">{getContent(`about_page.commitments.${item.key}.title`)}</h3>
                   <p className="text-gray-400 leading-relaxed text-sm font-light">{getContent(`about_page.commitments.${item.key}.desc`)}</p>

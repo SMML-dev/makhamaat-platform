@@ -9,7 +9,7 @@ export class Content {
   key: string;
 
   @Prop({ required: true, type: Object })
-  value: { en?: string; fr?: string };
+  value: { en?: string; fr?: string; icon?: string };
 
   @Prop()
   zone?: string;

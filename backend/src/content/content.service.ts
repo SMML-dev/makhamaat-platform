@@ -7,15 +7,15 @@ import { Content, ContentDocument } from './schemas/content.schema';
 export class ContentService {
   constructor(@InjectModel(Content.name) private contentModel: Model<ContentDocument>) {}
 
-  async findAll(): Promise<Record<string, { en?: string; fr?: string; zone?: string }>> {
+  async findAll(): Promise<Record<string, { en?: string; fr?: string; zone?: string; icon?: string }>> {
     const docs = await this.contentModel.find().exec();
     return docs.reduce((acc, doc) => {
       acc[doc.key] = { ...doc.value, zone: doc.zone };
       return acc;
-    }, {} as Record<string, { en?: string; fr?: string; zone?: string }>);
+    }, {} as Record<string, { en?: string; fr?: string; zone?: string; icon?: string }>);
   }
 
-  async upsert(key: string, value: { en?: string; fr?: string; zone?: string }, updatedBy?: string) {
+  async upsert(key: string, value: { en?: string; fr?: string; zone?: string; icon?: string }, updatedBy?: string) {
     const { zone, ...rest } = value;
     return this.contentModel
       .findOneAndUpdate({ key }, { key, value: rest, zone, updatedBy }, { upsert: true, new: true })

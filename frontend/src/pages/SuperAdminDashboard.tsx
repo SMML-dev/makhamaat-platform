@@ -134,7 +134,7 @@ const SuperAdminDashboard = () => {
   const [isSendingBroadcast, setIsSendingBroadcast] = useState(false);
   const [broadcastSuccess, setBroadcastSuccess] = useState(false);
   const [saToast, setSaToast] = useState<string | null>(null);
-  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, { en?: string; fr?: string; zone?: string }>>({});
+  const [homeContentDraft, setHomeContentDraft] = useState<Record<string, { en?: string; fr?: string; zone?: string; icon?: string }>>({});
   const [homeContentLoading, setHomeContentLoading] = useState(false);
   const [homeContentSaving, setHomeContentSaving] = useState<string | null>(null);
   const [homeContentDeleting, setHomeContentDeleting] = useState<string | null>(null);
@@ -142,6 +142,7 @@ const SuperAdminDashboard = () => {
   const [newContentEn, setNewContentEn] = useState('');
   const [newContentFr, setNewContentFr] = useState('');
   const [newContentZone, setNewContentZone] = useState('bottom');
+  const [newContentIcon, setNewContentIcon] = useState('');
   const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact'>('home');
 
   const PAGES_CONFIG = {
@@ -182,6 +183,7 @@ const SuperAdminDashboard = () => {
         en: draft.en ?? i18n.t(key, { lng: 'en' }),
         fr: draft.fr ?? i18n.t(key, { lng: 'fr' }),
         zone: activeTab.endsWith('-content') ? (draft.zone ?? 'bottom') : undefined,
+        icon: draft.icon,
       });
       showSaToast(t('superadmin.content_saved', 'Enregistré'));
     } catch (error) {
@@ -212,15 +214,16 @@ const SuperAdminDashboard = () => {
     if (!newContentKey) return;
     try {
       const newZone = activeTab.endsWith('-content') ? newContentZone : undefined;
-      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newZone });
+      await api.post('/content', { key: newContentKey, en: newContentEn, fr: newContentFr, zone: newZone, icon: newContentIcon });
       setHomeContentDraft(prev => ({
         ...prev,
-        [newContentKey]: { en: newContentEn, fr: newContentFr, zone: newZone },
+        [newContentKey]: { en: newContentEn, fr: newContentFr, zone: newZone, icon: newContentIcon },
       }));
       setNewContentKey('');
       setNewContentEn('');
       setNewContentFr('');
       setNewContentZone('bottom');
+      setNewContentIcon('');
       showSaToast(t('superadmin.content_added', 'Ajouté'));
     } catch (error) {
       console.error('Failed to add home content', error);
@@ -661,7 +664,7 @@ const SuperAdminDashboard = () => {
 
         <div className="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 space-y-4">
           <h3 className="text-lg font-bold text-brand-dark">{t('superadmin.add_content_key', 'Ajouter une clé')}</h3>
-          <div className={`grid grid-cols-1 ${allowZone ? 'lg:grid-cols-4' : 'lg:grid-cols-3'} gap-4`}>
+          <div className={`grid grid-cols-1 ${allowZone ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
             <input
               value={newContentKey}
               onChange={(e) => setNewContentKey(e.target.value)}
@@ -691,6 +694,12 @@ const SuperAdminDashboard = () => {
                 ))}
               </select>
             )}
+            <input
+              value={newContentIcon}
+              onChange={(e) => setNewContentIcon(e.target.value)}
+              placeholder={t('superadmin.icon_placeholder', 'Tractor ou 🍋')}
+              className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+            />
           </div>
           <button
             onClick={handleAddHomeContent}
@@ -724,7 +733,7 @@ const SuperAdminDashboard = () => {
                       {isHardcoded ? t('superadmin.reset', 'Reset') : t('superadmin.delete', 'Supprimer')}
                     </button>
                   </div>
-                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                  <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
                     <div className="space-y-1">
                       <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.english', 'Anglais')}</label>
                       <textarea
@@ -741,6 +750,15 @@ const SuperAdminDashboard = () => {
                         onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], fr: e.target.value } }))}
                         rows={3}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green transition-all resize-y"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="text-xs font-bold text-gray-400 uppercase">{t('superadmin.icon', 'Icône')}</label>
+                      <input
+                        value={draft.icon ?? ''}
+                        onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], icon: e.target.value } }))}
+                        placeholder={t('superadmin.icon_placeholder', 'Tractor ou 🍋')}
+                        className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
                       />
                     </div>
                   </div>

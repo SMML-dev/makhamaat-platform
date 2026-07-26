@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { MapPin, Phone, Mail, Loader2, CheckCircle, Send } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api, { messagesService } from '../services/api';
 
@@ -31,7 +32,7 @@ export const CONTACT_CONTENT_ZONES: string[] = ['top', 'after-header', 'after-in
 
 const Contact = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string; icon?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -43,7 +44,17 @@ const Contact = () => {
     if (typeof value === 'string') return value || t(key);
     return value?.[lang] ?? t(key);
   };
-
+  const getIcon = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'object' && value !== null) return value.icon;
+    return undefined;
+  };
+  const renderIcon = (name: string | undefined, className: string) => {
+    if (!name) return null;
+    const Comp = (LucideIcons as Record<string, any>)[name];
+    if (Comp && typeof Comp === 'function') return <Comp className={className} />;
+    return <span className={className}>{name}</span>;
+  };
   const renderDynamicZone = (zone: string, bgClass: string = 'bg-brand-light') => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
@@ -63,6 +74,7 @@ const Contact = () => {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
             >
+              {renderIcon(getIcon(key), 'w-8 h-8 text-brand-green mb-3')}
               <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
               <p className="text-gray-600">{getContent(key)}</p>
             </motion.div>

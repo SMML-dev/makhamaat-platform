@@ -862,6 +862,8 @@
     "reset": "Réinitialiser",
     "delete": "Supprimer",
     "placement": "Emplacement",
+    "icon": "Icône",
+    "icon_placeholder": "Tractor ou 🍋",
     "zone_top": "Haut",
     "zone_after_hero": "Après le Hero",
     "zone_after_services": "Après les Services",

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Leaf, Apple, ShoppingBag, Truck } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
 import pimentHydro from '../assets/piment_hydro.png';
@@ -27,7 +27,7 @@ export const SERVICES_CONTENT_ZONES: string[] = ['top', 'after-hero', 'after-lis
 
 const Services = () => {
   const { t, i18n } = useTranslation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string; icon?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
   useEffect(() => {
@@ -39,7 +39,17 @@ const Services = () => {
     if (typeof value === 'string') return value || t(key);
     return value?.[lang] ?? t(key);
   };
-
+  const getIcon = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'object' && value !== null) return value.icon;
+    return undefined;
+  };
+  const renderIcon = (name: string | undefined, className: string) => {
+    if (!name) return null;
+    const Comp = (LucideIcons as Record<string, any>)[name];
+    if (Comp && typeof Comp === 'function') return <Comp className={className} />;
+    return <span className={className}>{name}</span>;
+  };
   const renderDynamicZone = (zone: string, bgClass: string = 'bg-white') => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
@@ -59,6 +69,7 @@ const Services = () => {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
             >
+              {renderIcon(getIcon(key), 'w-8 h-8 text-brand-green mb-3')}
               <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
               <p className="text-gray-600">{getContent(key)}</p>
             </motion.div>
@@ -70,10 +81,10 @@ const Services = () => {
 
 
   const servicesList = [
-    { icon: Leaf, key: 'hydroponics' },
-    { icon: Apple, key: 'fruits' },
-    { icon: ShoppingBag, key: 'kiosks' },
-    { icon: Truck, key: 'export' },
+    { key: 'hydroponics', defaultIcon: 'Leaf' },
+    { key: 'fruits', defaultIcon: 'Apple' },
+    { key: 'kiosks', defaultIcon: 'ShoppingBag' },
+    { key: 'export', defaultIcon: 'Truck' },
   ] as const;
 
   return (
@@ -109,7 +120,7 @@ const Services = () => {
             >
               <div className="mr-6">
                 <div className="w-16 h-16 rounded-2xl bg-white shadow-md flex items-center justify-center text-brand-green group-hover:scale-110 group-hover:bg-brand-green group-hover:text-white transition-all">
-                  <service.icon className="w-8 h-8" />
+                  {renderIcon(getIcon(`services_page.items.${service.key}.title`) || service.defaultIcon, 'w-8 h-8 text-brand-green')}
                 </div>
               </div>
               <div>

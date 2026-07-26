@@ -16,4 +16,8 @@ export class UpdateContentDto {
   @IsOptional()
   @IsString()
   zone?: string;
+
+  @IsOptional()
+  @IsString()
+  icon?: string;
 }

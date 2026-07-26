@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowRight, Sprout, Tractor, Globe, ShoppingCart } from 'lucide-react';
+import * as LucideIcons from 'lucide-react';
 import { Link, useLocation } from 'react-router-dom';
 import { useTranslation } from 'react-i18next';
 import api from '../services/api';
@@ -52,13 +52,24 @@ export const CONTENT_ZONES = ['top', 'after-hero', 'after-services', 'after-abou
 const Home = () => {
   const { t, i18n } = useTranslation();
   const { hash } = useLocation();
-  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string }>>({});
+  const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string; icon?: string }>>({});
 
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
   const getContent = (key: string) => {
     const value = content[key];
     if (typeof value === 'string') return value || t(key);
     return value?.[lang] ?? t(key);
+  };
+  const getIcon = (key: string) => {
+    const value = content[key];
+    if (typeof value === 'object' && value !== null) return value.icon;
+    return undefined;
+  };
+  const renderIcon = (name: string | undefined, className: string) => {
+    if (!name) return null;
+    const Comp = (LucideIcons as Record<string, any>)[name];
+    if (Comp && typeof Comp === 'function') return <Comp className={className} />;
+    return <span className={className}>{name}</span>;
   };
   const renderDynamicZone = (zone: string, bgClass: string = 'bg-white') => {
     const keys = Object.keys(content).filter((key) => {
@@ -79,6 +90,7 @@ const Home = () => {
               transition={{ duration: 0.5 }}
               className="bg-white rounded-2xl p-8 shadow-sm border border-gray-100"
             >
+              {renderIcon(getIcon(key), 'w-8 h-8 text-brand-green mb-3')}
               <h3 className="text-lg font-bold text-brand-dark mb-2">{key}</h3>
               <p className="text-gray-600">{getContent(key)}</p>
             </motion.div>
@@ -103,10 +115,10 @@ const Home = () => {
   }, [hash]);
 
   const features = [
-    { icon: Tractor, key: 'hydroponics', color: 'text-brand-green', bg: 'bg-brand-green/10' },
-    { icon: Sprout, key: 'transformation', color: 'text-brand-yellow', bg: 'bg-brand-yellow/10' },
-    { icon: ShoppingCart, key: 'kiosks', color: 'text-blue-500', bg: 'bg-blue-500/10' },
-    { icon: Globe, key: 'export', color: 'text-purple-500', bg: 'bg-purple-500/10' },
+    { key: 'hydroponics', color: 'text-brand-green', bg: 'bg-brand-green/10', defaultIcon: 'Tractor' },
+    { key: 'transformation', color: 'text-brand-yellow', bg: 'bg-brand-yellow/10', defaultIcon: 'Sprout' },
+    { key: 'kiosks', color: 'text-blue-500', bg: 'bg-blue-500/10', defaultIcon: 'ShoppingCart' },
+    { key: 'export', color: 'text-purple-500', bg: 'bg-purple-500/10', defaultIcon: 'Globe' },
   ];
 
   const aboutItems = ['seasonal', 'cereals', 'export', 'processing'] as const;
@@ -153,7 +165,7 @@ const Home = () => {
             </p>
             <div className="flex flex-col sm:flex-row gap-4">
               <Link to="/services" className="premium-gradient text-white px-8 py-4 rounded-full font-bold text-lg hover:shadow-xl hover:shadow-brand-green/30 transition-all transform hover:-translate-y-1 flex items-center justify-center">
-                {getContent('home.discover_services')} <ArrowRight className="ml-2 w-5 h-5" />
+                {getContent('home.discover_services')} <LucideIcons.ArrowRight className="ml-2 w-5 h-5" />
               </Link>
               <Link to="/contact" className="bg-white/10 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-full font-bold text-lg hover:bg-white/20 transition-all flex items-center justify-center">
                 {getContent('home.contact_us')}
@@ -189,7 +201,7 @@ const Home = () => {
                 className="bg-white rounded-3xl p-8 shadow-lg shadow-gray-200/50 border border-gray-100 hover:shadow-xl hover:-translate-y-2 transition-all duration-300 group"
               >
                 <div className={`w-16 h-16 rounded-2xl ${feature.bg} flex items-center justify-center mb-6 group-hover:scale-110 transition-transform`}>
-                  <feature.icon className={`w-8 h-8 ${feature.color}`} />
+                  {renderIcon(getIcon(`home.features.${feature.key}.title`) || feature.defaultIcon, `w-8 h-8 ${feature.color}`)}
                 </div>
                 <h4 className="text-xl font-bold text-brand-dark mb-3">{getContent(`home.features.${feature.key}.title`)}</h4>
                 <p className="text-gray-600 leading-relaxed text-sm">{getContent(`home.features.${feature.key}.desc`)}</p>
@@ -307,7 +319,7 @@ const Home = () => {
                 ))}
               </ul>
               <Link to="/about" className="inline-flex items-center text-brand-green font-bold hover:text-brand-dark transition-colors">
-                {getContent('home.learn_more')} <ArrowRight className="ml-2 w-5 h-5" />
+                {getContent('home.learn_more')} <LucideIcons.ArrowRight className="ml-2 w-5 h-5" />
               </Link>
             </motion.div>
           </div>
