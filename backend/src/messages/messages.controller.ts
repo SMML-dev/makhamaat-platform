@@ -5,6 +5,7 @@ import { RolesGuard } from '../auth/guards/roles.guard';
 import { Roles } from '../auth/decorators/roles.decorator';
 import { Role } from '../users/schemas/user.schema';
 import { CreateContactMessageDto } from './dto/create-contact-message.dto';
+import { CreateInboundEmailDto } from './dto/create-inbound-email.dto';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
 import { Public } from '../auth/decorators/public.decorator';
 
@@ -19,6 +20,16 @@ export class MessagesController {
   @Post('contact')
   createContact(@Body() createContactMessageDto: CreateContactMessageDto) {
     return this.messagesService.createContactMessage(createContactMessageDto);
+  }
+
+  @Public()
+  @Post('inbound')
+  createInboundEmail(@Body() createInboundEmailDto: CreateInboundEmailDto) {
+    const toEmail = (createInboundEmailDto.to || '').match(/<([^>]+)>/)?.[1] || (createInboundEmailDto.to || '').toLowerCase().trim();
+    if (toEmail !== 'contact@mbc-suarl.com' && toEmail !== 'privacy@mbc-suarl.com') {
+      return { success: false, message: 'Unsupported recipient' };
+    }
+    return this.messagesService.createInboundMessage(createInboundEmailDto);
   }
 
   // ─── Admin Messaging ───────────────────────────────────────────────────────

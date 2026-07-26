@@ -4,6 +4,7 @@ import { Model } from 'mongoose';
 import { Message, MessageDocument, MessageFolder, MessageStatus, MessageType, TargetRole } from './schemas/message.schema';
 import { CreateContactMessageDto } from './dto/create-contact-message.dto';
 import { CreateBroadcastDto } from './dto/create-broadcast.dto';
+import { CreateInboundEmailDto } from './dto/create-inbound-email.dto';
 import { MailService } from '../mail/mail.service';
 
 @Injectable()
@@ -81,6 +82,24 @@ export class MessagesService implements OnModuleInit {
       .catch(err => console.error('Background contact notification failed:', err));
 
     return savedMessage;
+  }
+
+  async createInboundMessage(createInboundEmailDto: CreateInboundEmailDto): Promise<Message> {
+    const rawFrom = createInboundEmailDto.from || '';
+    const emailMatch = rawFrom.match(/<([^>]+)>/);
+    const email = (emailMatch ? emailMatch[1] : rawFrom).trim().toLowerCase();
+    const name = rawFrom.replace(/<[^>]+>/, '').replace(/"/g, '').trim() || email;
+
+    const createdMessage = new this.messageModel({
+      sender: `${name} (${email})`,
+      subject: createInboundEmailDto.subject,
+      content: createInboundEmailDto.text || createInboundEmailDto.html || '',
+      status: MessageStatus.UNREAD,
+      folder: MessageFolder.INBOX,
+      type: MessageType.CONTACT
+    });
+
+    return createdMessage.save();
   }
 
   async findByFolder(folder: string): Promise<Message[]> {
