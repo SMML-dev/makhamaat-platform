@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useNavigate } from 'react-router-dom';
 import { Lock, Mail, User, Loader2, CheckCircle2, AlertCircle, Home } from 'lucide-react';
+import { useTranslation } from 'react-i18next';
 import { authService } from '../services/api';
 import logoMbc from '../assets/logo_mbc.jpg';
 
@@ -13,6 +14,7 @@ const Register = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState(false);
   const navigate = useNavigate();
+  const { t } = useTranslation();
 
   useEffect(() => {
     const user = authService.getCurrentUser();
@@ -156,6 +158,15 @@ const Register = () => {
           <p className="mt-8 text-center text-sm text-gray-600 font-medium">
             Vous avez déjà un compte ?{' '}
             <Link to="/login" className="font-bold text-brand-green hover:text-brand-dark transition-colors">Se Connecter</Link>
+          </p>
+        )}
+        {!success && (
+          <p className="mt-6 text-center text-xs text-gray-500">
+            <Link to="/privacy" className="hover:text-brand-green transition-colors">{t('footer.privacy')}</Link>
+            {' / '}
+            <Link to="/terms" className="hover:text-brand-green transition-colors">{t('footer.terms')}</Link>
+            {' | '}
+            <a href="mailto:privacy@mbc-suarl.com" className="hover:text-brand-green transition-colors">privacy@mbc-suarl.com</a>
           </p>
         )}
       </motion.div>

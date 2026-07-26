@@ -212,14 +212,18 @@ const Layout = () => {
                   <span className="text-brand-green mr-3">✉️</span> 
                   <span>contact@mbc-suarl.com</span>
                 </li>
+                <li className="flex items-center">
+                  <span className="text-brand-green mr-3">🔒</span> 
+                  <a href="mailto:privacy@mbc-suarl.com" className="hover:text-brand-yellow transition-colors">privacy@mbc-suarl.com</a>
+                </li>
               </ul>
             </div>
           </div>
           <div className="border-t border-gray-800 mt-12 pt-8 flex flex-col md:flex-row justify-between items-center">
             <p className="text-gray-500 text-sm">{t('footer.copyright')}</p>
             <div className="flex space-x-6 mt-4 md:mt-0">
-              <span className="text-gray-500 hover:text-white cursor-pointer transition-colors">{t('footer.privacy')}</span>
-              <span className="text-gray-500 hover:text-white cursor-pointer transition-colors">{t('footer.terms')}</span>
+              <Link to="/privacy" className="text-gray-500 hover:text-white cursor-pointer transition-colors">{t('footer.privacy')}</Link>
+              <Link to="/terms" className="text-gray-500 hover:text-white cursor-pointer transition-colors">{t('footer.terms')}</Link>
             </div>
           </div>
         </div>

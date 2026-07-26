@@ -232,7 +232,7 @@ const Login = () => {
         </form>
 
         {/* Footer link */}
-        <div className="mt-10 pt-8 border-t border-gray-100/30 text-center">
+        <div className="mt-10 pt-8 border-t border-gray-100/30 text-center space-y-3">
           <p className="text-xs text-gray-400 font-bold uppercase tracking-widest">
             {t('login.new_here')}{' '}
             <Link
@@ -241,6 +241,13 @@ const Login = () => {
             >
               {t('login.join_us')}
             </Link>
+          </p>
+          <p className="text-[10px] text-white/30 font-bold uppercase tracking-widest">
+            <Link to="/privacy" className="hover:text-white transition-colors">{t('footer.privacy')}</Link>
+            {' / '}
+            <Link to="/terms" className="hover:text-white transition-colors">{t('footer.terms')}</Link>
+            {' | '}
+            <a href="mailto:privacy@mbc-suarl.com" className="hover:text-white transition-colors">privacy@mbc-suarl.com</a>
           </p>
         </div>
       </motion.div>

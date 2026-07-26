@@ -13,6 +13,8 @@ import { HOME_CONTENT_KEYS, CONTENT_ZONES } from './Home';
 import { ABOUT_CONTENT_KEYS, ABOUT_CONTENT_ZONES } from './About';
 import { SERVICES_CONTENT_KEYS, SERVICES_CONTENT_ZONES } from './Services';
 import { CONTACT_CONTENT_KEYS, CONTACT_CONTENT_ZONES } from './Contact';
+import { PRIVACY_CONTENT_KEYS, PRIVACY_CONTENT_ZONES } from './Privacy';
+import { TERMS_CONTENT_KEYS, TERMS_CONTENT_ZONES } from './Terms';
 
 // Helper to format date
 const formatDate = (dateString: string, language: string) => {
@@ -143,13 +145,15 @@ const SuperAdminDashboard = () => {
   const [newContentFr, setNewContentFr] = useState('');
   const [newContentZone, setNewContentZone] = useState('bottom');
   const [newContentIcon, setNewContentIcon] = useState('');
-  const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact'>('home');
+  const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact' | 'privacy' | 'terms'>('home');
 
   const PAGES_CONFIG = {
     home: { labelKey: 'page_home', titleKey: 'tab_home_content', descKey: 'home_content_desc', keys: HOME_CONTENT_KEYS, prefix: 'home.', zones: CONTENT_ZONES },
     about: { labelKey: 'page_about', titleKey: 'tab_about_content', descKey: 'about_content_desc', keys: ABOUT_CONTENT_KEYS, prefix: 'about_page.', zones: ABOUT_CONTENT_ZONES },
     services: { labelKey: 'page_services', titleKey: 'tab_services_content', descKey: 'services_content_desc', keys: SERVICES_CONTENT_KEYS, prefix: 'services_page.', zones: SERVICES_CONTENT_ZONES },
     contact: { labelKey: 'page_contact', titleKey: 'tab_contact_content', descKey: 'contact_content_desc', keys: CONTACT_CONTENT_KEYS, prefix: 'contact_page.', zones: CONTACT_CONTENT_ZONES },
+    privacy: { labelKey: 'page_privacy', titleKey: 'tab_privacy_content', descKey: 'privacy_content_desc', keys: PRIVACY_CONTENT_KEYS, prefix: 'privacy.', zones: PRIVACY_CONTENT_ZONES },
+    terms: { labelKey: 'page_terms', titleKey: 'tab_terms_content', descKey: 'terms_content_desc', keys: TERMS_CONTENT_KEYS, prefix: 'terms.', zones: TERMS_CONTENT_ZONES },
   };
   const [selectedBroadcast, setSelectedBroadcast] = useState<any | null>(null);
 
@@ -1598,7 +1602,7 @@ const SuperAdminDashboard = () => {
             <div className="flex flex-col sm:flex-row items-start sm:items-center gap-4 bg-white p-4 rounded-2xl shadow-sm border border-gray-100">
               <span className="text-sm font-bold text-gray-600 uppercase tracking-wider">{t('superadmin.select_page', 'Page')}</span>
               <div className="flex flex-wrap gap-2">
-                {(['home', 'about', 'services', 'contact'] as const).map((page) => (
+                {(['home', 'about', 'services', 'contact', 'privacy', 'terms'] as const).map((page) => (
                   <button
                     key={page}
                     onClick={() => setSelectedPage(page)}

@@ -5,6 +5,8 @@ import Home from './pages/Home';
 import About from './pages/About';
 import Services from './pages/Services';
 import Contact from './pages/Contact';
+import Privacy from './pages/Privacy';
+import Terms from './pages/Terms';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import UserDashboard from './pages/UserDashboard';
@@ -96,6 +98,8 @@ function App() {
         <Route path="about" element={<PublicRoute><About /></PublicRoute>} />
         <Route path="services" element={<PublicRoute><Services /></PublicRoute>} />
         <Route path="contact" element={<PublicRoute><Contact /></PublicRoute>} />
+        <Route path="privacy" element={<Privacy />} />
+        <Route path="terms" element={<Terms />} />
       </Route>
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
