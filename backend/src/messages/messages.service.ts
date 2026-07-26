@@ -51,13 +51,16 @@ export class MessagesService implements OnModuleInit {
     const savedMessage = await createdMessage.save();
 
     if (savedMessage.receiverEmail) {
-      this.mailService.sendDirectMessageEmail({
+      const emailSent = await this.mailService.sendDirectMessageEmail({
         to: savedMessage.receiverEmail,
         from: savedMessage.sender,
         fromEmail: senderEmail,
         subject: savedMessage.subject,
         content: savedMessage.content,
-      }).catch(err => console.error('Background direct message email failed:', err));
+      });
+      if (!emailSent) {
+        throw new Error('Failed to send direct message email to recipient');
+      }
     }
 
     return savedMessage;
