@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useTranslation } from 'react-i18next';
 import { useSearchParams } from 'react-router-dom';
-import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Target, Layout, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar } from 'lucide-react';
+import { Database, ShieldCheck, BarChart3, Users, LogOut, Download, CheckCircle, TrendingUp, DollarSign, Package, Truck, Activity, X, UserPlus, Mail, Lock, ShieldAlert, Key, Loader2, Edit2, Check, Trash2, Target, Layout, Sprout, ShoppingCart, AlertTriangle, MessageSquare, Send, Globe, Megaphone, ChevronDown, Calendar, Receipt } from 'lucide-react';
 import { senegalMarketData } from '../data/senegalMarketData';
 import api, { authService, usersService, systemService, productsService, activitiesService, messagesService } from '../services/api';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar } from 'recharts';
@@ -1534,6 +1534,7 @@ const SuperAdminDashboard = () => {
                         <th className="p-4 w-1/4">{t('superadmin.user_ip', 'Utilisateur / IP')}</th>
                         <th className="p-4 w-1/4">{t('superadmin.action', 'Action')}</th>
                         <th className="p-4 w-1/4">{t('superadmin.status_label', 'Statut')}</th>
+                        <th className="p-4 w-1/4">{t('superadmin.actions', 'Actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1572,11 +1573,22 @@ const SuperAdminDashboard = () => {
                                    {log.status}
                                 </span>
                             </td>
+                            <td className="p-4">
+                              {(log.rawType === 'SALE' || log.rawType === 'EXPORT') && (
+                                <button
+                                  onClick={() => activitiesService.downloadReceipt(log.id, log.orderNumber)}
+                                  className="p-2 rounded-xl bg-gray-100 hover:bg-brand-green hover:text-white text-brand-green transition-colors"
+                                  title={t('superadmin.download_receipt', 'Download receipt')}
+                                >
+                                  <Receipt size={18} />
+                                </button>
+                              )}
+                            </td>
                           </motion.tr>
                         ))}
                         {filteredLogs.length === 0 && (
                           <tr>
-                            <td colSpan={4} className="p-8 text-center text-gray-500 italic">{t('superadmin.no_results', { filter: logFilter })}</td>
+                            <td colSpan={5} className="p-8 text-center text-gray-500 italic">{t('superadmin.no_results', { filter: logFilter })}</td>
                           </tr>
                         )}
                       </AnimatePresence>

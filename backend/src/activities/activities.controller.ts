@@ -7,7 +7,7 @@ import { Role } from '../users/schemas/user.schema';
 
 import { UsersService } from '../users/users.service';
 import { Response } from 'express';
-import * as PDFDocument from 'pdfkit';
+import PDFDocument from 'pdfkit';
 
 @UseGuards(JwtAuthGuard, RolesGuard)
 @Controller('activities')
