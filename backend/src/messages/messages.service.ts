@@ -40,13 +40,26 @@ export class MessagesService implements OnModuleInit {
   // ─── Admin Messaging ───────────────────────────────────────────────────────
 
   async create(createMessageDto: any): Promise<Message> {
+    const { senderEmail, ...rest } = createMessageDto;
     const createdMessage = new this.messageModel({
-      ...createMessageDto,
+      ...rest,
       folder: MessageFolder.SENT,
-      type: createMessageDto.type || MessageType.DIRECT,
-      receiverEmail: createMessageDto.receiverEmail || undefined,
+      type: rest.type || MessageType.DIRECT,
+      receiverEmail: rest.receiverEmail || undefined,
     });
-    return createdMessage.save();
+    const savedMessage = await createdMessage.save();
+
+    if (savedMessage.receiverEmail) {
+      this.mailService.sendDirectMessageEmail({
+        to: savedMessage.receiverEmail,
+        from: savedMessage.sender,
+        fromEmail: senderEmail,
+        subject: savedMessage.subject,
+        content: savedMessage.content,
+      }).catch(err => console.error('Background direct message email failed:', err));
+    }
+
+    return savedMessage;
   }
 
   async createContactMessage(createContactMessageDto: CreateContactMessageDto): Promise<Message> {

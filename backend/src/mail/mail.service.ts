@@ -156,4 +156,45 @@ export class MailService {
       return false;
     }
   }
+
+  async sendDirectMessageEmail(directData: { to: string; from: string; fromEmail?: string; subject: string; content: string }): Promise<boolean> {
+    try {
+      this.logger.log(`Sending direct message email to ${directData.to}...`);
+
+      await this.transporter.sendMail({
+        from: '"Makhamaat Platform" <contact@mbc-suarl.com>',
+        to: directData.to,
+        replyTo: directData.fromEmail,
+        subject: directData.subject,
+        html: `
+          <div style="font-family: Arial, sans-serif; padding: 30px; border: 1px solid #e0e0e0; border-radius: 20px; max-width: 600px; margin: 0 auto; background-color: #ffffff;">
+            <div style="text-align: center; margin-bottom: 30px; border-bottom: 2px solid #2e7d32; padding-bottom: 20px;">
+              <h1 style="color: #0d3b2e; margin: 0; font-size: 24px;">MAKHAMAAT BUSINESS CORP</h1>
+              <p style="color: #2e7d32; font-size: 12px; margin-top: 5px; text-transform: uppercase; letter-spacing: 2px;">Message de la plateforme</p>
+            </div>
+
+            <div style="margin-bottom: 25px;">
+              <p style="margin: 5px 0;"><strong style="color: #2e7d32;">De :</strong> ${directData.from}</p>
+              <p style="margin: 5px 0;"><strong style="color: #2e7d32;">Sujet :</strong> ${directData.subject}</p>
+            </div>
+
+            <div style="background-color: #f9f9f9; padding: 20px; border-radius: 15px; border-left: 5px solid #2e7d32; margin: 20px 0;">
+              <p style="color: #444; line-height: 1.6; white-space: pre-wrap;">${directData.content}</p>
+            </div>
+
+            <p style="color: #999; font-size: 12px; text-align: center; margin-top: 30px;">
+              Ce message a été envoyé depuis la plateforme Makhamaat.
+              <br/>Vous pouvez répondre directement en répondant à cet e-mail.
+            </p>
+          </div>
+        `,
+      });
+
+      this.logger.log('Direct message e-mail sent successfully.');
+      return true;
+    } catch (error) {
+      this.logger.error('Failed to send direct message email', error);
+      return false;
+    }
+  }
 }

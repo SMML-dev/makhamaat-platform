@@ -25,8 +25,13 @@ export class MessagesController {
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Post()
-  create(@Body() createMessageDto: any) {
-    return this.messagesService.create(createMessageDto);
+  create(@Body() createMessageDto: any, @Req() req) {
+    return this.messagesService.create({
+      ...createMessageDto,
+      sender: req.user?.name || req.user?.email || 'Admin',
+      senderRole: req.user?.role,
+      senderEmail: req.user?.email,
+    });
   }
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN, Role.USER)
