@@ -91,7 +91,7 @@ const sectionKeys = [
 ];
 
 const Terms = () => {
-  const { i18n } = useTranslation();
+  const { t, i18n } = useTranslation();
   const [content, setContent] = useState<Record<string, string | { en?: string; fr?: string; zone?: string; icon?: string }>>({});
   const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
 
@@ -124,8 +124,8 @@ const Terms = () => {
     const keys = Object.keys(content).filter((key) => {
       const value = content[key];
       if (TERMS_CONTENT_KEYS.includes(key)) return false;
-      if (typeof value === 'string') return zone === 'bottom' && value.length > 0;
-      return value?.zone === zone && (value?.en || value?.fr);
+      if (typeof value === 'string') return key.startsWith('terms.') && zone === 'bottom' && value.length > 0;
+      return key.startsWith('terms.') && value?.zone === zone && (value?.en || value?.fr);
     });
     if (keys.length === 0) return null;
     return (
@@ -181,7 +181,7 @@ const Terms = () => {
           </div>
           <div className='mt-12 text-center'>
             <Link to='/' className='text-brand-green font-bold hover:text-brand-dark transition-colors'>
-              Return to home
+              {t('common.return_home', 'Return to home')}
             </Link>
           </div>
         </motion.div>
