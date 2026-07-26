@@ -1,4 +1,5 @@
-import { Body, Controller, Post, HttpCode, HttpStatus } from '@nestjs/common';
+import { Body, Controller, Post, HttpCode, HttpStatus, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { AuthService } from './auth.service';
 import { Public } from './decorators/public.decorator';
 
@@ -9,8 +10,16 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.OK)
   @Post('login')
-  signIn(@Body() signInDto: Record<string, any>) {
-    return this.authService.signIn(signInDto.email, signInDto.password);
+  async signIn(@Body() signInDto: Record<string, any>, @Res({ passthrough: true }) res: Response) {
+    const { access_token, user } = await this.authService.signIn(signInDto.email, signInDto.password);
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 1000,
+      path: '/',
+    });
+    return { user };
   }
 
   @Public()
@@ -30,8 +39,24 @@ export class AuthController {
   @Public()
   @HttpCode(HttpStatus.CREATED)
   @Post('register')
-  signUp(@Body() signUpDto: Record<string, any>) {
+  async signUp(@Body() signUpDto: Record<string, any>, @Res({ passthrough: true }) res: Response) {
     const { role, ...registerData } = signUpDto;
-    return this.authService.signUp({ ...registerData, role: 'USER' });
+    const { access_token, user } = await this.authService.signUp({ ...registerData, role: 'USER' });
+    res.cookie('access_token', access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      maxAge: 60 * 60 * 1000,
+      path: '/',
+    });
+    return { user };
+  }
+
+  @Public()
+  @HttpCode(HttpStatus.OK)
+  @Post('logout')
+  logout(@Res({ passthrough: true }) res: Response) {
+    res.clearCookie('access_token', { path: '/' });
+    return { success: true };
   }
 }

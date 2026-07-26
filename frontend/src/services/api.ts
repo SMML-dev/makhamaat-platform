@@ -4,24 +4,16 @@ const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3005';
 
 const api = axios.create({
   baseURL: API_URL,
+  withCredentials: true,
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
-  return config;
-});
+// Auth token is sent automatically as an httpOnly cookie.
 
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401 && window.location.pathname !== '/login') {
-      const token = localStorage.getItem('token');
-      if (token) {
-        authService.logout();
-      }
+      authService.logout();
     }
     return Promise.reject(error);
   }
@@ -30,8 +22,7 @@ api.interceptors.response.use(
 export const authService = {
   login: async (credentials: any) => {
     const response = await api.post('/auth/login', credentials);
-    if (response.data.access_token) {
-      localStorage.setItem('token', response.data.access_token);
+    if (response.data.user) {
       localStorage.setItem('user', JSON.stringify(response.data.user));
     }
     return response.data;
@@ -41,7 +32,7 @@ export const authService = {
     return response.data;
   },
   logout: () => {
-    localStorage.removeItem('token');
+    api.post('/auth/logout').catch(() => {});
     localStorage.removeItem('user');
     window.location.href = '/login';
   },
