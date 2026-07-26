@@ -78,6 +78,7 @@ const SuperAdminDashboard = () => {
           setVoucherGoal(res.data['loyalty.voucher_goal']?.en || '500000');
           setGoldDiscount(res.data['loyalty.gold_discount']?.en || '5');
           setPlatinumCashback(res.data['loyalty.platinum_cashback']?.en || '10');
+          setVouchersEnabled((res.data['loyalty.vouchers_enabled']?.en || 'true') !== 'false');
         } catch (error) {
           console.error('Failed to fetch voucher goal', error);
         }
@@ -165,6 +166,7 @@ const SuperAdminDashboard = () => {
   const [voucherGoal, setVoucherGoal] = useState('500000');
   const [goldDiscount, setGoldDiscount] = useState('5');
   const [platinumCashback, setPlatinumCashback] = useState('10');
+  const [vouchersEnabled, setVouchersEnabled] = useState(true);
   const [isVoucherSaving, setIsVoucherSaving] = useState(false);
 
   const PAGES_CONFIG = {
@@ -1618,6 +1620,10 @@ const SuperAdminDashboard = () => {
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-2xl font-bold text-brand-dark mb-2">{t('superadmin.voucher_settings', 'Paramètres des bons')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('superadmin.voucher_settings_desc', 'Montant à dépenser pour gagner un bon de fidélité')}</p>
+              <div className="flex items-center gap-3 mb-4">
+                <input id="vouchersEnabled" type="checkbox" checked={vouchersEnabled} onChange={(e) => setVouchersEnabled(e.target.checked)} className="w-5 h-5 rounded border-gray-300 text-brand-green focus:ring-brand-green" />
+                <label htmlFor="vouchersEnabled" className="text-sm font-bold text-gray-700">{t('superadmin.vouchers_enabled', 'Activer les bons de fidélité')}</label>
+              </div>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                 <div className="w-full">
                   <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">{t('superadmin.voucher_goal', 'Seuil (FCFA)')}</label>
@@ -1660,6 +1666,7 @@ const SuperAdminDashboard = () => {
                       api.post('/content', { key: 'loyalty.voucher_goal', en: voucherGoal, fr: voucherGoal, zone: 'system' }),
                       api.post('/content', { key: 'loyalty.gold_discount', en: goldDiscount, fr: goldDiscount, zone: 'system' }),
                       api.post('/content', { key: 'loyalty.platinum_cashback', en: platinumCashback, fr: platinumCashback, zone: 'system' }),
+                      api.post('/content', { key: 'loyalty.vouchers_enabled', en: String(vouchersEnabled), fr: String(vouchersEnabled), zone: 'system' }),
                     ]);
                     showSaToast(t('superadmin.voucher_saved', 'Paramètres enregistrés'));
                   } catch (error) {

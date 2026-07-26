@@ -19,7 +19,7 @@ const UserDashboard = () => {
   const [stats, setStats] = useState({ activeOrders: 0, totalSpent: 0, inDelivery: 0 });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [voucherSettings, setVoucherSettings] = useState({ goal: 500000, goldDiscount: 5, platinumCashback: 10 });
+  const [voucherSettings, setVoucherSettings] = useState({ goal: 500000, goldDiscount: 5, platinumCashback: 10, vouchersEnabled: true });
 
   // Cart State
   const [cart, setCart] = useState<any[]>([]);
@@ -458,10 +458,12 @@ const UserDashboard = () => {
         const goal = parseInt(res.data['loyalty.voucher_goal']?.[lang] || res.data['loyalty.voucher_goal']?.en || '500000', 10);
         const goldDiscount = parseInt(res.data['loyalty.gold_discount']?.[lang] || res.data['loyalty.gold_discount']?.en || '5', 10);
         const platinumCashback = parseInt(res.data['loyalty.platinum_cashback']?.[lang] || res.data['loyalty.platinum_cashback']?.en || '10', 10);
+        const vouchersEnabled = (res.data['loyalty.vouchers_enabled']?.[lang] || res.data['loyalty.vouchers_enabled']?.en || 'true') !== 'false';
         setVoucherSettings({
           goal: isNaN(goal) ? 500000 : goal,
           goldDiscount: isNaN(goldDiscount) ? 5 : goldDiscount,
           platinumCashback: isNaN(platinumCashback) ? 10 : platinumCashback,
+          vouchersEnabled,
         });
       } catch (error) {
         console.error('Failed to fetch voucher settings', error);
@@ -995,6 +997,7 @@ const UserDashboard = () => {
 
               {/* Right Column: Loyalty & Sidebar Info */}
               <div className="lg:col-span-4 space-y-8">
+                {voucherSettings.vouchersEnabled ? (
                 <div className="bg-brand-dark text-white rounded-[3rem] p-10 relative overflow-hidden group shadow-2xl">
                   <div className={`absolute top-0 right-0 w-48 h-48 ${tierBg.replace('bg-', 'bg-')}/10 rounded-bl-[100px] -mr-10 -mt-10 blur-2xl group-hover:scale-110 transition-transform duration-700`}></div>
 
@@ -1036,6 +1039,11 @@ const UserDashboard = () => {
                     </button>
                   </div>
                 </div>
+                ) : (
+                <div className="bg-gray-100 text-brand-dark rounded-[3rem] p-10 shadow-sm border border-gray-200 flex items-center justify-center">
+                  <p className="text-center font-black text-sm">{t('user.vouchers_disabled', "Programme de bons temporairement désactivé")}</p>
+                </div>
+                )}
 
                 <div className="bg-white rounded-[2.5rem] p-8 shadow-sm border border-gray-100">
                   <div className="flex items-center justify-between mb-8">
@@ -2045,6 +2053,7 @@ const UserDashboard = () => {
                   </p>
                 </div>
 
+                {voucherSettings.vouchersEnabled && (
                 <div className="relative z-10 mt-12 bg-white/5 p-8 rounded-3xl border border-white/5 backdrop-blur-lg">
                   <div className="flex justify-between items-center mb-4">
                     <p className="text-white font-black text-xs uppercase tracking-widest">{t('user.unlock_next', "Progression vers le niveau supérieur")}</p>
@@ -2057,6 +2066,7 @@ const UserDashboard = () => {
                     />
                   </div>
                 </div>
+                )}
               </div>
 
               <div className="md:w-1/2 p-12 overflow-y-auto">
