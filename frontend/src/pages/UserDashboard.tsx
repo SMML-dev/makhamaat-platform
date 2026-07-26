@@ -19,7 +19,7 @@ const UserDashboard = () => {
   const [stats, setStats] = useState({ activeOrders: 0, totalSpent: 0, inDelivery: 0 });
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [voucherSettings, setVoucherSettings] = useState({ goal: 500000 });
+  const [voucherSettings, setVoucherSettings] = useState({ goal: 500000, goldDiscount: 5, platinumCashback: 10 });
 
   // Cart State
   const [cart, setCart] = useState<any[]>([]);
@@ -456,7 +456,13 @@ const UserDashboard = () => {
         const res = await api.get('/content');
         const lang = i18n.language.startsWith('fr') ? 'fr' : 'en';
         const goal = parseInt(res.data['loyalty.voucher_goal']?.[lang] || res.data['loyalty.voucher_goal']?.en || '500000', 10);
-        setVoucherSettings(prev => ({ ...prev, goal: isNaN(goal) ? 500000 : goal }));
+        const goldDiscount = parseInt(res.data['loyalty.gold_discount']?.[lang] || res.data['loyalty.gold_discount']?.en || '5', 10);
+        const platinumCashback = parseInt(res.data['loyalty.platinum_cashback']?.[lang] || res.data['loyalty.platinum_cashback']?.en || '10', 10);
+        setVoucherSettings({
+          goal: isNaN(goal) ? 500000 : goal,
+          goldDiscount: isNaN(goldDiscount) ? 5 : goldDiscount,
+          platinumCashback: isNaN(platinumCashback) ? 10 : platinumCashback,
+        });
       } catch (error) {
         console.error('Failed to fetch voucher settings', error);
       }
@@ -2072,24 +2078,24 @@ const UserDashboard = () => {
                       <BenefitItem icon={MapPin} label={t('user.benefit_support_label', "Support Standard")} desc={t('user.benefit_support_desc', "Assistance via messagerie pendant les heures d'ouvertures.")} />
                       <div className="mt-10 p-6 bg-brand-green/5 rounded-3xl border border-brand-green/10">
                         <p className="text-brand-green font-black text-xs uppercase tracking-widest mb-2">{t('user.upgrade_to_gold', "Upgrade vers Gold")}</p>
-                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_gold_desc', { threshold: voucherGoal.toLocaleString() })}</p>
+                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_gold_desc', { percent: voucherSettings.goldDiscount, threshold: voucherGoal.toLocaleString() })}</p>
                       </div>
                     </>
                   )}
                   {currentTier === 'Gold' && (
                     <>
-                      <BenefitItem icon={Award} label={t('user.benefit_reward_5')} desc={t('user.benefit_reward_5_desc', "Remise automatique créditée sur votre compte.")} highlight />
+                      <BenefitItem icon={Award} label={t('user.benefit_reward_5', { percent: voucherSettings.goldDiscount })} desc={t('user.benefit_reward_5_desc', "Remise automatique créditée sur votre compte.")} highlight />
                       <BenefitItem icon={Truck} label={t('user.benefit_priority')} desc={t('user.benefit_priority_desc', "Vos commandes sont préparées et expédiées avant les autres membres.")} />
                       <BenefitItem icon={Zap} label={t('user.benefit_exclusives_gold_label', "Offres Exclusives Gold")} desc={t('user.benefit_exclusives_gold_desc', "Profitez de ventes privées chaque mois.")} />
                       <div className="mt-10 p-6 bg-cyan-50 rounded-3xl border border-cyan-100">
                         <p className="text-cyan-600 font-black text-xs uppercase tracking-widest mb-2">{t('user.upgrade_to_platinum', "Upgrade vers Platinum")}</p>
-                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_platinum_desc', "Gagnez 10% de cashback et un conseiller dédié après 2M F dépensés.")}</p>
+                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_platinum_desc', { percent: voucherSettings.platinumCashback })}</p>
                       </div>
                     </>
                   )}
                   {currentTier === 'Platinum' && (
                     <>
-                      <BenefitItem icon={Crown} label={t('user.benefit_reward_10')} desc={t('user.benefit_reward_10_desc', "Le maximum de cashback disponible sur la plateforme.")} highlight />
+                      <BenefitItem icon={Crown} label={t('user.benefit_reward_10', { percent: voucherSettings.platinumCashback })} desc={t('user.benefit_reward_10_desc', "Le maximum de cashback disponible sur la plateforme.")} highlight />
                       <BenefitItem icon={UserCheck} label={t('user.benefit_advisor')} desc={t('user.benefit_advisor_desc', "Un contact VIP direct pour toutes vos demandes spécifiques.")} />
                       <BenefitItem icon={Truck} label={t('user.benefit_free_shipping')} desc={t('user.benefit_free_shipping_desc', "Plus de frais de port sur vos commandes importantes.")} />
                       <BenefitItem icon={Calendar} label={t('user.benefit_events')} desc={t('user.benefit_events_desc', "Soyez notre invité d'honneur aux grands sommets agricoles.")} />

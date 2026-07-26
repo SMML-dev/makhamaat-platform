@@ -76,6 +76,8 @@ const SuperAdminDashboard = () => {
         try {
           const res = await api.get('/content');
           setVoucherGoal(res.data['loyalty.voucher_goal']?.en || '500000');
+          setGoldDiscount(res.data['loyalty.gold_discount']?.en || '5');
+          setPlatinumCashback(res.data['loyalty.platinum_cashback']?.en || '10');
         } catch (error) {
           console.error('Failed to fetch voucher goal', error);
         }
@@ -161,6 +163,8 @@ const SuperAdminDashboard = () => {
   const [newContentIcon, setNewContentIcon] = useState('');
   const [selectedPage, setSelectedPage] = useState<'home' | 'about' | 'services' | 'contact' | 'privacy' | 'terms'>('home');
   const [voucherGoal, setVoucherGoal] = useState('500000');
+  const [goldDiscount, setGoldDiscount] = useState('5');
+  const [platinumCashback, setPlatinumCashback] = useState('10');
   const [isVoucherSaving, setIsVoucherSaving] = useState(false);
 
   const PAGES_CONFIG = {
@@ -1614,8 +1618,8 @@ const SuperAdminDashboard = () => {
             <div className="bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
               <h2 className="text-2xl font-bold text-brand-dark mb-2">{t('superadmin.voucher_settings', 'Paramètres des bons')}</h2>
               <p className="text-gray-500 text-sm mb-6">{t('superadmin.voucher_settings_desc', 'Montant à dépenser pour gagner un bon de fidélité')}</p>
-              <div className="flex flex-col sm:flex-row items-start sm:items-end gap-4">
-                <div className="flex-1 w-full">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+                <div className="w-full">
                   <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">{t('superadmin.voucher_goal', 'Seuil (FCFA)')}</label>
                   <input
                     type="number"
@@ -1625,25 +1629,51 @@ const SuperAdminDashboard = () => {
                     className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
                   />
                 </div>
-                <button
-                  onClick={async () => {
-                    setIsVoucherSaving(true);
-                    try {
-                      await api.post('/content', { key: 'loyalty.voucher_goal', en: voucherGoal, fr: voucherGoal, zone: 'system' });
-                      showSaToast(t('superadmin.voucher_saved', 'Seuil enregistré'));
-                    } catch (error) {
-                      console.error('Failed to save voucher goal', error);
-                    } finally {
-                      setIsVoucherSaving(false);
-                    }
-                  }}
-                  disabled={isVoucherSaving}
-                  className="flex items-center gap-2 bg-brand-dark text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
-                >
-                  {isVoucherSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
-                  {t('superadmin.save', 'Enregistrer')}
-                </button>
+                <div className="w-full">
+                  <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">{t('superadmin.gold_discount', 'Remise Gold (%)')}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={goldDiscount}
+                    onChange={(e) => setGoldDiscount(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                  />
+                </div>
+                <div className="w-full">
+                  <label className="block text-xs font-black uppercase tracking-wider text-gray-500 mb-2">{t('superadmin.platinum_cashback', 'Cashback Platinum (%)')}</label>
+                  <input
+                    type="number"
+                    min="0"
+                    max="100"
+                    value={platinumCashback}
+                    onChange={(e) => setPlatinumCashback(e.target.value)}
+                    className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
+                  />
+                </div>
               </div>
+              <button
+                onClick={async () => {
+                  setIsVoucherSaving(true);
+                  try {
+                    await Promise.all([
+                      api.post('/content', { key: 'loyalty.voucher_goal', en: voucherGoal, fr: voucherGoal, zone: 'system' }),
+                      api.post('/content', { key: 'loyalty.gold_discount', en: goldDiscount, fr: goldDiscount, zone: 'system' }),
+                      api.post('/content', { key: 'loyalty.platinum_cashback', en: platinumCashback, fr: platinumCashback, zone: 'system' }),
+                    ]);
+                    showSaToast(t('superadmin.voucher_saved', 'Paramètres enregistrés'));
+                  } catch (error) {
+                    console.error('Failed to save loyalty settings', error);
+                  } finally {
+                    setIsVoucherSaving(false);
+                  }
+                }}
+                disabled={isVoucherSaving}
+                className="flex items-center gap-2 bg-brand-dark text-white px-5 py-3 rounded-xl text-sm font-black hover:bg-brand-dark/90 transition-all disabled:opacity-50"
+              >
+                {isVoucherSaving ? <Loader2 size={16} className="animate-spin" /> : <Check size={16} />}
+                {t('superadmin.save', 'Enregistrer')}
+              </button>
             </div>
           </motion.div>
         );
