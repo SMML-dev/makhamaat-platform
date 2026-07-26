@@ -697,7 +697,7 @@ const SuperAdminDashboard = () => {
             <input
               value={newContentIcon}
               onChange={(e) => setNewContentIcon(e.target.value)}
-              placeholder={t('superadmin.icon_placeholder', 'Tractor ou 🍋')}
+              placeholder={t('superadmin.icon_placeholder', 'Text or 🍋')}
               className="px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
             />
           </div>
@@ -757,7 +757,7 @@ const SuperAdminDashboard = () => {
                       <input
                         value={draft.icon ?? ''}
                         onChange={(e) => setHomeContentDraft(prev => ({ ...prev, [key]: { ...prev[key], icon: e.target.value } }))}
-                        placeholder={t('superadmin.icon_placeholder', 'Tractor ou 🍋')}
+                        placeholder={t('superadmin.icon_placeholder', 'Text or 🍋')}
                         className="w-full px-4 py-3 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-brand-green/50 focus:border-brand-green"
                       />
                     </div>
