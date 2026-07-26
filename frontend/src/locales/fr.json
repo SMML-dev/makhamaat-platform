@@ -801,7 +801,7 @@
     "benefit_support_label": "Support Standard",
     "benefit_support_desc": "Assistance via messagerie pendant les heures d'ouvertures.",
     "upgrade_to_gold": "Upgrade vers Gold",
-    "upgrade_to_gold_desc": "Gagnez 5% de remise sur chaque commande après 500k F dépensés.",
+    "upgrade_to_gold_desc": "Gagnez 5% de remise sur chaque commande après {{threshold}} F dépensés.",
     "benefit_reward_5_desc": "Remise automatique créditée sur votre compte.",
     "benefit_priority_desc": "Vos commandes sont préparées et expédiées avant les autres membres.",
     "benefit_exclusives_gold_label": "Offres Exclusives Gold",

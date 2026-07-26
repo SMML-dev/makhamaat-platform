@@ -799,7 +799,7 @@
     "benefit_support_label": "Standard Support",
     "benefit_support_desc": "Messaging support during business hours.",
     "upgrade_to_gold": "Upgrade to Gold",
-    "upgrade_to_gold_desc": "Earn 5% discount on each order after 500k F spent.",
+    "upgrade_to_gold_desc": "Earn 5% discount on each order after {{threshold}} F spent.",
     "benefit_reward_5_desc": "Automatic discount credited to your account.",
     "benefit_priority_desc": "Your orders are prepared and shipped before other members.",
     "benefit_exclusives_gold_label": "Exclusive Gold Offers",

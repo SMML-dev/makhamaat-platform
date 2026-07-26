@@ -215,7 +215,7 @@ const UserDashboard = () => {
   const voucherGoal = voucherSettings.goal || 500000;
   const loyaltyProgress = stats.totalSpent > 0 ? ((stats.totalSpent % voucherGoal) / voucherGoal * 100) : 0;
   const earnedVouchers = Math.floor(stats.totalSpent / voucherGoal);
-  const currentTier = stats.totalSpent >= 2000000 ? 'Platinum' : stats.totalSpent >= 500000 ? 'Gold' : 'Privilege';
+  const currentTier = stats.totalSpent >= 2000000 ? 'Platinum' : stats.totalSpent >= voucherGoal ? 'Gold' : 'Privilege';
 
   let tierName = t('user.tier_privilege', "Compte Privilège");
   let tierColor = "text-emerald-400";
@@ -2072,7 +2072,7 @@ const UserDashboard = () => {
                       <BenefitItem icon={MapPin} label={t('user.benefit_support_label', "Support Standard")} desc={t('user.benefit_support_desc', "Assistance via messagerie pendant les heures d'ouvertures.")} />
                       <div className="mt-10 p-6 bg-brand-green/5 rounded-3xl border border-brand-green/10">
                         <p className="text-brand-green font-black text-xs uppercase tracking-widest mb-2">{t('user.upgrade_to_gold', "Upgrade vers Gold")}</p>
-                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_gold_desc', "Gagnez 5% de remise sur chaque commande après 500k F dépensés.")}</p>
+                        <p className="text-gray-500 text-xs font-bold leading-relaxed">{t('user.upgrade_to_gold_desc', { threshold: voucherGoal.toLocaleString() })}</p>
                       </div>
                     </>
                   )}
