@@ -407,11 +407,14 @@ const AdminDashboard = () => {
     if (!selectedMessage || !replyContent.trim()) return;
 
     try {
-      // Extract email from sender format "Name (email@example.com)" or use sender directly
-      const emailMatch = selectedMessage.sender.match(/\(([^)]+)\)/);
-      const receiverEmail = emailMatch ? emailMatch[1] : selectedMessage.sender;
+      // Extract email from sender format "Name (email@example.com)" or from the string directly
+      const emailMatch = selectedMessage.sender.match(/\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b/);
+      const receiverEmail = emailMatch ? emailMatch[0] : selectedMessage.sender;
 
       await messagesService.sendMessage({
+        sender: currentUser?.name || currentUser?.email || 'Admin',
+        senderEmail: currentUser?.email,
+        senderRole: currentUser?.role,
         receiverId: selectedMessage.senderId || undefined,
         receiverEmail: receiverEmail,
         subject: `RE: ${selectedMessage.subject}`,
@@ -422,9 +425,10 @@ const AdminDashboard = () => {
       setShowViewMessageModal(false);
       setReplyContent("");
     } catch (error) {
+      console.error('Reply send error:', error);
       showToast(t("admin.reply_error", "Erreur lors de l'envoi."));
     }
-  }, [selectedMessage, replyContent, t, showToast]);
+  }, [selectedMessage, replyContent, t, showToast, currentUser]);
 
 
   useEffect(() => {
