@@ -53,7 +53,7 @@ const About = () => {
   const renderIcon = (name: string | undefined, className: string) => {
     if (!name) return null;
     const Comp = (LucideIcons as Record<string, any>)[name];
-    if (Comp && typeof Comp === 'function') return <Comp className={className} />;
+    if (Comp && (typeof Comp === 'function' || Comp.$$typeof)) return <Comp className={className} />;
     return <span className={className}>{name}</span>;
   };
   const renderDynamicZone = (zone: string, bgClass: string = 'bg-brand-light') => {
