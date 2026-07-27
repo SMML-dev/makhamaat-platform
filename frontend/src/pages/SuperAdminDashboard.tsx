@@ -1535,7 +1535,6 @@ const SuperAdminDashboard = () => {
                         <th className="p-4 w-1/4">{t('superadmin.user_ip', 'Utilisateur / IP')}</th>
                         <th className="p-4 w-1/4">{t('superadmin.action', 'Action')}</th>
                         <th className="p-4 w-1/4">{t('superadmin.status_label', 'Statut')}</th>
-                        <th className="p-4 w-1/4">{t('superadmin.actions', 'Actions')}</th>
                         </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-100">
@@ -1554,19 +1553,30 @@ const SuperAdminDashboard = () => {
                                 <span className={`text-xs ${log.rawStatus === 'CANCELLED' ? 'text-red-500' : 'text-gray-400'}`}>{log.ip}</span>
                             </td>
                             <td className="p-4">
-                              <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border flex items-center justify-center w-fit shadow-sm transition-all hover:scale-105
-                                ${log.rawType === 'SALE' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 
-                                  log.rawType === 'PURCHASE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
-                                  log.rawType === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' :
-                                  log.rawType === 'EXPORT' ? 'bg-purple-50 text-purple-600 border-purple-100' :
-                                  log.rawType === 'PRODUCT_CREATED' ? 'bg-teal-50 text-teal-600 border-teal-100' :
-                                  log.rawType === 'PRODUCT_UPDATED' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' :
-                                  log.rawType === 'PRODUCT_DELETED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
-                                  'bg-gray-50 text-gray-600 border-gray-100'
-                                }`}
-                              >
-                                {log.action}
-                              </span>
+                              <div className="flex items-center gap-2">
+                                <span className={`px-3 py-1.5 rounded-xl text-[10px] font-black uppercase tracking-[0.15em] border flex items-center justify-center w-fit shadow-sm transition-all hover:scale-105
+                                  ${log.rawType === 'SALE' ? 'bg-indigo-50 text-indigo-600 border-indigo-100' : 
+                                    log.rawType === 'PURCHASE' ? 'bg-emerald-50 text-emerald-600 border-emerald-100' :
+                                    log.rawType === 'ADJUSTMENT' ? 'bg-amber-50 text-amber-600 border-amber-100' :
+                                    log.rawType === 'EXPORT' ? 'bg-purple-50 text-purple-600 border-purple-100' :
+                                    log.rawType === 'PRODUCT_CREATED' ? 'bg-teal-50 text-teal-600 border-teal-100' :
+                                    log.rawType === 'PRODUCT_UPDATED' ? 'bg-cyan-50 text-cyan-600 border-cyan-100' :
+                                    log.rawType === 'PRODUCT_DELETED' ? 'bg-rose-50 text-rose-600 border-rose-100' :
+                                    'bg-gray-50 text-gray-600 border-gray-100'
+                                  }`}
+                                >
+                                  {log.action}
+                                </span>
+                                {(log.rawType === 'SALE' || log.rawType === 'EXPORT') && (
+                                  <button
+                                    onClick={() => activitiesService.downloadReceipt(log.id, log.orderNumber)}
+                                    className="p-2 rounded-xl bg-gray-100 hover:bg-brand-green hover:text-white text-brand-green transition-colors"
+                                    title={t('superadmin.download_receipt', 'Download receipt')}
+                                  >
+                                    <Receipt size={18} />
+                                  </button>
+                                )}
+                              </div>
                             </td>
                             <td className="p-4">
                                 <span className={`${log.rawStatus === 'COMPLETED' ? 'bg-green-100 text-green-700' : log.rawStatus === 'CANCELLED' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'} px-2 py-1 rounded text-xs font-bold flex items-center w-fit`}>
@@ -1574,22 +1584,11 @@ const SuperAdminDashboard = () => {
                                    {log.status}
                                 </span>
                             </td>
-                            <td className="p-4">
-                              {(log.rawType === 'SALE' || log.rawType === 'EXPORT') && (
-                                <button
-                                  onClick={() => activitiesService.downloadReceipt(log.id, log.orderNumber)}
-                                  className="p-2 rounded-xl bg-gray-100 hover:bg-brand-green hover:text-white text-brand-green transition-colors"
-                                  title={t('superadmin.download_receipt', 'Download receipt')}
-                                >
-                                  <Receipt size={18} />
-                                </button>
-                              )}
-                            </td>
                           </motion.tr>
                         ))}
                         {filteredLogs.length === 0 && (
                           <tr>
-                            <td colSpan={5} className="p-8 text-center text-gray-500 italic">{t('superadmin.no_results', { filter: logFilter })}</td>
+                            <td colSpan={4} className="p-8 text-center text-gray-500 italic">{t('superadmin.no_results', { filter: logFilter })}</td>
                           </tr>
                         )}
                       </AnimatePresence>
