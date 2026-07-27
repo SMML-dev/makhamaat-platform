@@ -90,7 +90,7 @@ export class ActivitiesController {
         throw new ForbiddenException('Impossible d\'annuler une commande déjà livrée.');
     }
 
-    return this.activitiesService.update(id, { status: 'CANCELLED' });
+    return this.activitiesService.update(id, { status: 'CANCELLED', cancelledBy: req.user.role === Role.USER ? 'USER' : 'ADMIN' });
   }
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
@@ -100,8 +100,11 @@ export class ActivitiesController {
     if (!activity) {
       throw new NotFoundException('Commande introuvable.');
     }
-    if (activity.status === 'CANCELLED' && updateActivityDto.status && updateActivityDto.status !== 'CANCELLED') {
-      throw new ForbiddenException('Une commande annulée ne peut être définie qu\'en CANCELLED.');
+    if (activity.cancelledBy === 'USER') {
+      throw new ForbiddenException('Une commande annulée par l\'utilisateur ne peut plus être modifiée.');
+    }
+    if (updateActivityDto.status === 'CANCELLED' && !updateActivityDto.cancelledBy) {
+      updateActivityDto.cancelledBy = 'ADMIN';
     }
     return this.activitiesService.update(id, updateActivityDto, req.user.userId);
   }

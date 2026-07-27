@@ -70,6 +70,9 @@ export class Activity {
 
   @Prop()
   paymentId?: string;
+
+  @Prop({ type: String })
+  cancelledBy?: string;
 }
 
 export const ActivitySchema = SchemaFactory.createForClass(Activity);
