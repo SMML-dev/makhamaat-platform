@@ -100,8 +100,8 @@ export class ActivitiesController {
     if (!activity) {
       throw new NotFoundException('Commande introuvable.');
     }
-    if (activity.status === 'CANCELLED') {
-      throw new ForbiddenException('Une commande annulée ne peut plus être modifiée.');
+    if (activity.status === 'CANCELLED' && updateActivityDto.status && updateActivityDto.status !== 'CANCELLED') {
+      throw new ForbiddenException('Une commande annulée ne peut être définie qu\'en CANCELLED.');
     }
     return this.activitiesService.update(id, updateActivityDto, req.user.userId);
   }
