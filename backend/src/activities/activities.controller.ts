@@ -95,7 +95,14 @@ export class ActivitiesController {
 
   @Roles(Role.ADMIN, Role.SUPER_ADMIN)
   @Put(':id')
-  update(@Param('id') id: string, @Body() updateActivityDto: any, @Req() req) {
+  async update(@Param('id') id: string, @Body() updateActivityDto: any, @Req() req) {
+    const activity = await this.activitiesService.findOne(id);
+    if (!activity) {
+      throw new NotFoundException('Commande introuvable.');
+    }
+    if (activity.status === 'CANCELLED') {
+      throw new ForbiddenException('Une commande annulée ne peut plus être modifiée.');
+    }
     return this.activitiesService.update(id, updateActivityDto, req.user.userId);
   }
 
