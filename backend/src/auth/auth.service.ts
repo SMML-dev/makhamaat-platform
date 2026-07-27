@@ -25,19 +25,19 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
     
-    const payload = { sub: user._id, email: user.email, name: user.name, role: user.role };
+    const payload = { sub: (user._id as any).toString(), email: user.email, name: user.name, role: user.role };
     return {
       access_token: await this.jwtService.signAsync(payload),
-      user: { id: user._id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl, phone: user.phone, address: user.address, createdAt: (user as any).createdAt }
+      user: { id: (user._id as any).toString(), email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl, phone: user.phone, address: user.address, createdAt: (user as any).createdAt }
     };
   }
 
   async signUp(createUserDto: any): Promise<any> {
     const user = await this.usersService.create(createUserDto);
-    const payload = { sub: user._id, email: user.email, name: user.name, role: user.role };
+    const payload = { sub: (user._id as any).toString(), email: user.email, name: user.name, role: user.role };
     return {
       access_token: await this.jwtService.signAsync(payload),
-      user: { id: user._id, email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl, phone: user.phone, address: user.address, createdAt: (user as any).createdAt }
+      user: { id: (user._id as any).toString(), email: user.email, name: user.name, role: user.role, avatarUrl: user.avatarUrl, phone: user.phone, address: user.address, createdAt: (user as any).createdAt }
     };
   }
 
