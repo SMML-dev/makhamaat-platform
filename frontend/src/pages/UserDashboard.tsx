@@ -1755,7 +1755,7 @@ const UserDashboard = () => {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  {selectedOrder.status === 'PENDING' && (
+                  {selectedOrder.status !== 'COMPLETED' && selectedOrder.status !== 'CANCELLED' && (
                     <button
                       onClick={() => setOrderToCancel(selectedOrder._id)}
                       disabled={isHandlingOrder}

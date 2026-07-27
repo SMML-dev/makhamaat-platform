@@ -564,7 +564,8 @@ const SuperAdminDashboard = () => {
     action: getLogAction(act),
     status: act.status === 'COMPLETED' ? t('superadmin.status_success', 'Réussi') : act.status === 'CANCELLED' ? t('superadmin.status_failed', 'Échoué') : t('superadmin.status_pending', 'En Attente'),
     rawStatus: act.status,
-    rawType: act.type
+    rawType: act.type,
+    orderNumber: act.orderNumber
   }));
 
   // Premium Dashboard Metrics
