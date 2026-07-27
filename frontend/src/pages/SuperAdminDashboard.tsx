@@ -547,13 +547,24 @@ const SuperAdminDashboard = () => {
 
   const getLogAction = (act: any) => {
     const productName = getProductName(act.productId) || t('superadmin.unknown_product', 'Unknown Product');
+    const orderRef = act.orderNumber ? `#${act.orderNumber}` : null;
+    const qty = act.quantity != null ? ` (${t('superadmin.quantity_abbr', 'Qty')}: ${act.quantity})` : '';
+    const orderPart = orderRef ? ` - ${t('superadmin.order', 'Order')} ${orderRef}` : '';
+
+    if (['SALE', 'EXPORT'].includes(act.type)) {
+      return `${t(`activity.type.${act.type}`, act.type)}${orderPart} - ${productName}${qty}`;
+    }
     if (act.type === 'PRODUCT_UPDATED' && act.orderNumber) {
-      return t('superadmin.order_status_changed', { orderNumber: act.orderNumber, product: productName });
+      if (act.notes) return act.notes;
+      return `${t('superadmin.status_change', 'Status change')} - ${t('superadmin.order', 'Order')} ${orderRef} - ${productName} - ${act.status || ''}`;
     }
     if (['PRODUCT_CREATED', 'PRODUCT_UPDATED', 'PRODUCT_DELETED'].includes(act.type)) {
       return `${t(`activity.type.${act.type}`, act.type)} - ${productName}`;
     }
-    return `${t(`activity.type.${act.type}`, act.type)} - ${productName} (${t('superadmin.quantity_abbr', 'Qty')}: ${act.quantity})`;
+    if (['PRODUCTION', 'TRANSFORMATION', 'PURCHASE', 'ADJUSTMENT'].includes(act.type)) {
+      return `${t(`activity.type.${act.type}`, act.type)} - ${productName}${qty}`;
+    }
+    return `${t(`activity.type.${act.type}`, act.type)} - ${productName}`;
   };
 
   const filteredLogs = (logsData.data || []).map(act => ({
