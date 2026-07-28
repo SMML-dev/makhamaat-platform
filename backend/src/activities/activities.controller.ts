@@ -125,7 +125,7 @@ export class ActivitiesController {
     const unitPrice = product?.price || 0;
     const total = unitPrice * quantity;
     const fmt = (n: number) => n.toLocaleString('en-US');
-    const paymentLabel = activity.paymentStatus === 'PAID' || activity.status === 'COMPLETED' ? 'PAID' : 'PENDING';
+    const paymentLabel = activity.status === 'CANCELLED' ? 'NOT PAID' : activity.paymentStatus === 'PAID' || activity.status === 'COMPLETED' ? 'PAID' : 'PENDING';
     const unitLabel = product?.unit ? ` ${product.unit}` : '';
 
     res.setHeader('Content-Type', 'application/pdf');
