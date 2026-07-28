@@ -1543,17 +1543,17 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                       <span className="tracking-tight">{order.actorId?.name || '-'}</span>
                     </td>
                     <td className="px-10 py-6">
-                      {(() => {
-                        const match = order.notes?.match(/Adresse:\s*([^|]+)\s*\|\s*Tel:\s*([^\n|]+)/);
-                        const address = match?.[1]?.trim() || order.actorId?.address;
-                        const phone = match?.[2]?.trim() || order.actorId?.phone;
-                        return (
-                          <div className="space-y-1 text-xs">
-                            {phone && <div className="text-gray-400">{phone}</div>}
-                            {address && <div className="text-gray-500">{address}</div>}
-                          </div>
-                        );
-                      })()}
+                      <div className="space-y-1 text-xs">
+                        {order.notes ? (
+                          <div className="text-gray-500 whitespace-pre-line">{order.notes.split('\n').slice(1).join('\n').trim() || order.notes}</div>
+                        ) : (
+                          <>
+                            {order.actorId?.phone && <div className="text-gray-400">{order.actorId.phone}</div>}
+                            {order.actorId?.address && <div className="text-gray-500">{order.actorId.address}</div>}
+                            {!order.actorId?.phone && !order.actorId?.address && <span className="text-gray-500">-</span>}
+                          </>
+                        )}
+                      </div>
                     </td>
                     <td className="px-10 py-6 font-black tracking-tighter text-lg">
                       {(order.quantity / 1000).toFixed(2)} <span className={`text-[10px] font-bold uppercase ml-1 ${settings.darkMode ? "text-gray-500" : "text-gray-400"}`}>T</span>

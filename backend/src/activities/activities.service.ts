@@ -98,7 +98,7 @@ export class ActivitiesService implements OnModuleInit {
   }
 
   async findAll(): Promise<Activity[]> {
-    return this.activityModel.find().populate('productId').populate('actorId').exec();
+    return this.activityModel.find().populate('productId').populate({ path: 'actorId', model: 'User' }).exec();
   }
 
   async findLogs(page: number, limit: number, filter: string): Promise<{ data: Activity[], total: number }> {
