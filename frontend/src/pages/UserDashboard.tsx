@@ -1512,18 +1512,18 @@ const UserDashboard = () => {
             >
               <div className="flex min-h-[500px] max-h-[90vh]">
                 <div className="w-1/3 bg-gray-50 p-8 border-r border-gray-100 hidden md:block">
-                  <h3 className="font-bold text-gray-500 uppercase tracking-widest text-xs mb-8">{t('user.order_summary', "Résumé")}</h3>
+                  <h3 className="font-bold text-gray-500 uppercase tracking-widest text-xs mb-8">{t('user.order_summary', "RÉSUMÉ DE LA COMMANDE")}</h3>
                   <div className="space-y-4 max-h-[300px] overflow-y-auto mb-6 pr-2">
                     {cart.map(item => (
                       <div key={item._id} className="text-sm">
                         <p className="font-bold text-brand-dark truncate">{item.name}</p>
-                        <p className="text-gray-500">Qty: {item.cartQuantity} × {item.price.toLocaleString()} F</p>
+                        <p className="text-gray-500">{t('user.qty', 'Qty')}: {item.cartQuantity} × {item.price.toLocaleString()} {t('user.currency_short', 'F')}</p>
                       </div>
                     ))}
                   </div>
                   <div className="pt-6 border-t border-gray-200">
                     <p className="text-gray-500 text-xs font-bold uppercase mb-1">{t('user.total_to_pay', "Total à payer")}</p>
-                    <p className="text-2xl font-black text-brand-green leading-none">{cartTotal.toLocaleString()} FCFA</p>
+                    <p className="text-2xl font-black text-brand-green leading-none">{cartTotal.toLocaleString()} {t('user.currency', 'FCFA')}</p>
                   </div>
                 </div>
 
@@ -1601,7 +1601,7 @@ const UserDashboard = () => {
                           >
                             <Truck className={`w-8 h-8 mb-3 transition-colors ${paymentMethod === 'CASH' ? 'text-brand-green' : 'text-gray-400 group-hover:text-gray-500'}`} />
                             <span className={`font-bold text-sm ${paymentMethod === 'CASH' ? 'text-brand-green' : 'text-gray-500'}`}>{t('user.pay_on_delivery', "Paiement à la livraison")}</span>
-                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Standard</span>
+                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">{t('user.pay_standard', 'Standard')}</span>
                           </button>
                           <button
                             type="button"
@@ -1610,7 +1610,7 @@ const UserDashboard = () => {
                           >
                             <CreditCard className={`w-8 h-8 mb-3 transition-colors ${paymentMethod === 'CARD' ? 'text-blue-500' : 'text-gray-400 group-hover:text-gray-500'}`} />
                             <span className={`font-bold text-sm ${paymentMethod === 'CARD' ? 'text-blue-500' : 'text-gray-500'}`}>{t('user.pay_by_card', "Carte Bancaire")}</span>
-                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Sécurisé</span>
+                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">{t('user.pay_secure', 'Sécurisé')}</span>
                           </button>
                           <button
                             type="button"
@@ -1618,8 +1618,8 @@ const UserDashboard = () => {
                             className={`flex flex-col items-center justify-center p-6 rounded-3xl border-2 transition-all group ${paymentMethod === 'MOBILE_MONEY' ? 'bg-orange-50 border-orange-500 ring-4 ring-orange-500/10' : 'bg-white border-gray-100 hover:border-gray-200'}`}
                           >
                             <ShoppingBag className={`w-8 h-8 mb-3 transition-colors ${paymentMethod === 'MOBILE_MONEY' ? 'text-orange-500' : 'text-gray-400 group-hover:text-gray-500'}`} />
-                            <span className={`font-bold text-sm ${paymentMethod === 'MOBILE_MONEY' ? 'text-orange-500' : 'text-gray-500'}`}>Mobile Money</span>
-                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">Wave, Orange, MTN</span>
+                            <span className={`font-bold text-sm ${paymentMethod === 'MOBILE_MONEY' ? 'text-orange-500' : 'text-gray-500'}`}>{t('user.mobile_money', 'Mobile Money')}</span>
+                            <span className="text-[10px] text-gray-400 mt-1 uppercase font-bold tracking-widest">{t('user.mobile_money_providers', 'Wave, Orange, MTN')}</span>
                           </button>
                         </div>
                       </div>
@@ -1648,7 +1648,7 @@ const UserDashboard = () => {
                               />
                             </div>
                             <div className="space-y-1">
-                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">CVV</label>
+                              <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t('user.cvv', 'CVV')}</label>
                               <input
                                 type="text"
                                 value={cardDetails.cvv}
