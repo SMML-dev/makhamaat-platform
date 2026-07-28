@@ -175,8 +175,9 @@ const AdminDashboard = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [allInboxMessages, setAllInboxMessages] = useState<Message[]>([]);
   const [messageFolder, setMessageFolder] = useState<
-    "INBOX" | "SENT" | "TRASH" | "BROADCASTS"
+    "INBOX" | "SENT" | "TRASH" | "BROADCASTS" | "COMPOSE"
   >("INBOX");
+  const [composeTo, setComposeTo] = useState<Actor | null>(null);
   const [chartFilter, setChartFilter] = useState<"Month" | "Week" | "Year">("Year");
 
   const [showNewLotModal, setShowNewLotModal] = useState(false);
@@ -432,12 +433,19 @@ const AdminDashboard = () => {
   }, [selectedMessage, replyContent, t, showToast, currentUser]);
 
 
+  const handleMessageSent = useCallback(() => {
+    showToast(t("admin.message_sent", "Message envoyé !"));
+    setComposeTo(null);
+    setMessageFolder("SENT");
+    fetchMessages("SENT");
+  }, [fetchMessages, t, showToast]);
+
   useEffect(() => {
     fetchDashboardData();
   }, [fetchDashboardData]);
 
   useEffect(() => {
-    if (activeTab === "messages") fetchMessages(messageFolder);
+    if (activeTab === "messages" && messageFolder !== "COMPOSE") fetchMessages(messageFolder);
   }, [activeTab, messageFolder, fetchMessages]);
 
   useEffect(() => {
@@ -457,9 +465,10 @@ const AdminDashboard = () => {
 
   const openContact = useCallback((actor: Actor) => {
     setActiveTab("messages");
-    setMessageFolder("SENT"); // Optional: logic to start a new message could go here
+    setMessageFolder("COMPOSE");
+    setComposeTo(actor);
     showToast(`${t("common.contacting")} ${actor.name}...`);
-  }, [setActiveTab, showToast, t]);
+  }, [setActiveTab, setMessageFolder, setComposeTo, showToast, t]);
 
   const handleUpdateActor = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
@@ -1134,7 +1143,7 @@ const AdminDashboard = () => {
               {activeTab === "clients" && <ActorManagement t={t} actors={actors} openProfile={openProfile} openContact={openContact} settings={{ ...settings, onAddActor: () => setShowNewActorModal(true) }} />}
               {activeTab === "targets" && <StrategicTargets t={t} projectionsData={projectionsData} settings={settings} />}
               {activeTab === "market-prices" && <MarketPriceComparison t={t} i18n={i18n} marketPriceData={marketPriceData} isLoadingMarketPrices={isLoadingMarketPrices} settings={settings} onRefresh={fetchMarketPriceData} />}
-              {activeTab === "messages" && <CommunicationCenter t={t} messages={messages} messageFolder={messageFolder} setMessageFolder={setMessageFolder} onViewMessage={handleViewMessage} setShowBroadcastModal={setShowBroadcastModal} />}
+              {activeTab === "messages" && <CommunicationCenter t={t} messages={messages} messageFolder={messageFolder} setMessageFolder={setMessageFolder} onViewMessage={handleViewMessage} setShowBroadcastModal={setShowBroadcastModal} actors={actors} currentUser={currentUser} composeTo={composeTo} setComposeTo={setComposeTo} onMessageSent={handleMessageSent} />}
               {activeTab === "settings" && <SettingsPanel t={t} i18n={i18n} settings={settings} setSettings={setSettings} setShow2FAModal={setShow2FAModal} setTwoFactorStep={setTwoFactorStep} setShowRotationModal={setShowRotationModal} setShowLogoutConfirm={setShowLogoutConfirm} showToast={showToast} />}
             </motion.div>
           </AnimatePresence>
@@ -1823,8 +1832,12 @@ const ActorManagement = ({ t, actors, openProfile, openContact, settings }: any)
   );
 };
 
-const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onViewMessage, setShowBroadcastModal }: any) => {
+const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onViewMessage, setShowBroadcastModal, actors, currentUser, composeTo, setComposeTo, onMessageSent }: any) => {
   const [signalSearch, setSignalSearch] = useState("");
+  const [subject, setSubject] = useState("");
+  const [content, setContent] = useState("");
+  const [selectedActorId, setSelectedActorId] = useState<string>("");
+  const [isSending, setIsSending] = useState(false);
 
   const filteredMessages = useMemo(() => {
     return messages.filter((m: any) =>
@@ -1833,6 +1846,49 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
       m.sender.toLowerCase().includes(signalSearch.toLowerCase())
     );
   }, [messages, signalSearch]);
+
+  const selectedActor = useMemo(() => actors.find((a: any) => a._id === selectedActorId), [actors, selectedActorId]);
+
+  const handleStartNewMessage = () => {
+    setComposeTo(null);
+    setMessageFolder("COMPOSE");
+  };
+
+  const handleCancelCompose = () => {
+    setComposeTo(null);
+    setMessageFolder("INBOX");
+  };
+
+  const handleSend = async () => {
+    if (!selectedActor || !subject.trim() || !content.trim()) return;
+    setIsSending(true);
+    try {
+      await messagesService.sendMessage({
+        sender: currentUser?.name || currentUser?.email || 'Admin',
+        senderEmail: currentUser?.email,
+        senderRole: currentUser?.role,
+        receiverId: selectedActor._id,
+        receiverEmail: (selectedActor as any).contactEmail || selectedActor.contact,
+        subject: subject.trim(),
+        content: content.trim(),
+        type: "DIRECT"
+      });
+      onMessageSent();
+    } catch (error) {
+      console.error('Send message error:', error);
+      toast.error(t("admin.send_error", "Erreur lors de l'envoi."));
+    } finally {
+      setIsSending(false);
+    }
+  };
+
+  useEffect(() => {
+    if (messageFolder === "COMPOSE") {
+      setSubject("");
+      setContent("");
+      setSelectedActorId(composeTo ? composeTo._id : "");
+    }
+  }, [messageFolder, composeTo]);
 
   return (
     <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-[4rem] shadow-premium overflow-hidden flex flex-col lg:flex-row h-[800px]">
@@ -1843,6 +1899,14 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
             <MessageCircle size={20} />
           </div>
         </div>
+
+        <button
+          onClick={handleStartNewMessage}
+          className="w-full mb-4 py-4 bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform"
+        >
+          <Plus size={16} />
+          {t("admin.new_message", "Nouveau Message")}
+        </button>
 
         <button
           onClick={() => setShowBroadcastModal(true)}
@@ -1881,55 +1945,129 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
         </nav>
       </div>
       <div className="flex-1 flex flex-col min-w-0">
-        <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-          <div className="flex items-center gap-4">
-            <div className="px-5 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-500">{t("admin.msg_channel", "Channel A-04")}</div>
-            <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400 hidden sm:block">{t("admin.msg_frequency", "Frequency: Secure Layer 7")}</h4>
-          </div>
-          <div className="relative group/search">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/search:text-brand-emerald transition-colors" />
-            <input
-              type="text"
-              value={signalSearch}
-              onChange={(e) => setSignalSearch(e.target.value)}
-              placeholder={t("admin.scanning_signals")}
-              className="bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-6 text-[10px] font-black tracking-widest outline-none focus:border-brand-emerald/50 w-48 transition-all"
-            />
-          </div>
-        </div>
-        <div className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
-          {filteredMessages.length === 0 ? (
-            <div className="h-full flex flex-col items-center justify-center text-gray-600 space-y-6">
-              <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] border border-white/5 flex items-center justify-center animate-spin-slow">
-                <Inbox size={48} className="opacity-20" />
-              </div>
-              <p className="font-black text-[10px] uppercase tracking-[0.5em] text-center max-w-[200px] leading-loose">{t("admin.no_signals_desc", "No active signals detected in this sector")}</p>
-            </div>
-          ) : (
-            filteredMessages.map((msg: any) => (
-              <div
-                key={msg._id} onClick={() => onViewMessage(msg)}
-                className={`p-10 rounded-[3.5rem] border transition-all cursor-pointer group relative overflow-hidden ${msg.status === "UNREAD" ? "bg-brand-emerald/10 border-brand-emerald/30 border-2 shadow-[0_0_20px_rgba(0,245,160,0.1)]" : "bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.05]"}`}
+        {messageFolder === "COMPOSE" ? (
+          <div className="flex-1 flex flex-col min-w-0 bg-white/[0.01]">
+            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400">{t("admin.new_message", "Nouveau Message")}</h4>
+              <button
+                onClick={handleCancelCompose}
+                className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"
+                title={t("common.cancel", "Annuler")}
               >
-                <div className="flex items-center justify-between mb-6 relative z-10">
-                  <div className="flex items-center gap-5">
-                    <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-emerald/20 to-cyan-500/20 border border-brand-emerald/20 flex items-center justify-center font-black text-brand-emerald shadow-lg group-hover:scale-105 transition-transform">{msg.sender[0]}</div>
+                <X size={18} />
+              </button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("common.receiver", "Destinataire")}</label>
+                {composeTo ? (
+                  <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl">
+                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-emerald/20 to-cyan-500/20 flex items-center justify-center font-black text-brand-emerald">{composeTo.name[0]}</div>
                     <div>
-                      <p className="font-black text-lg tracking-tight group-hover:text-brand-emerald transition-colors">{msg.sender}</p>
-                      <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{msg.type === 'BROADCAST' ? t("admin.global_folder") : t("admin.authenticated_type")}</p>
+                      <p className="font-black text-brand-dark">{composeTo.name}</p>
+                      <p className="text-xs text-gray-500">{(composeTo as any).contactEmail || composeTo.contact}</p>
                     </div>
                   </div>
-                  <div className="flex flex-col items-end gap-2">
-                    <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
-                    <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">{new Date(msg.createdAt).toLocaleDateString()}</p>
-                  </div>
-                </div>
-                <h5 className="text-xl font-black mb-4 tracking-tight leading-snug max-w-[80%] uppercase text-xs">{msg.subject}</h5>
-                <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed font-bold opacity-80 group-hover:opacity-100 transition-opacity">{msg.content}</p>
+                ) : (
+                  <select
+                    value={selectedActorId}
+                    onChange={(e) => setSelectedActorId(e.target.value)}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 text-sm"
+                  >
+                    <option value="">{t("admin.select_partner", "Sélectionner un partenaire")}</option>
+                    {actors.map((actor: any) => (
+                      <option key={actor._id} value={actor._id}>
+                        {actor.name} ({(actor as any).contactEmail || actor.contact})
+                      </option>
+                    ))}
+                  </select>
+                )}
               </div>
-            ))
-          )}
-        </div>
+
+              <div className="space-y-2">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.subject", "Sujet")}</label>
+                <input
+                  type="text"
+                  value={subject}
+                  onChange={(e) => setSubject(e.target.value)}
+                  placeholder={t("admin.subject_placeholder", "Objet du message")}
+                  className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm"
+                />
+              </div>
+
+              <div className="space-y-2 flex-1 flex flex-col">
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.message", "Message")}</label>
+                <textarea
+                  value={content}
+                  onChange={(e) => setContent(e.target.value)}
+                  placeholder={t("admin.message_placeholder", "Votre message...")}
+                  className="flex-1 min-h-[180px] bg-white/5 border border-white/10 rounded-2xl p-5 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm resize-none"
+                />
+              </div>
+
+              <button
+                onClick={handleSend}
+                disabled={!selectedActor || !subject.trim() || !content.trim() || isSending}
+                className="w-full py-4 bg-brand-emerald text-brand-dark rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-brand-emerald/20 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <Send size={16} />
+                {isSending ? t("common.sending", "Envoi...") : t("common.send", "Envoyer")}
+              </button>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div className="flex items-center gap-4">
+                <div className="px-5 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-500">{t("admin.msg_channel", "Channel A-04")}</div>
+                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400 hidden sm:block">{t("admin.msg_frequency", "Frequency: Secure Layer 7")}</h4>
+              </div>
+              <div className="relative group/search">
+                <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/search:text-brand-emerald transition-colors" />
+                <input
+                  type="text"
+                  value={signalSearch}
+                  onChange={(e) => setSignalSearch(e.target.value)}
+                  placeholder={t("admin.scanning_signals")}
+                  className="bg-white/5 border border-white/10 rounded-2xl py-3 pl-12 pr-6 text-[10px] font-black tracking-widest outline-none focus:border-brand-emerald/50 w-48 transition-all"
+                />
+              </div>
+            </div>
+            <div className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
+              {filteredMessages.length === 0 ? (
+                <div className="h-full flex flex-col items-center justify-center text-gray-600 space-y-6">
+                  <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] border border-white/5 flex items-center justify-center animate-spin-slow">
+                    <Inbox size={48} className="opacity-20" />
+                  </div>
+                  <p className="font-black text-[10px] uppercase tracking-[0.5em] text-center max-w-[200px] leading-loose">{t("admin.no_signals_desc", "No active signals detected in this sector")}</p>
+                </div>
+              ) : (
+                filteredMessages.map((msg: any) => (
+                  <div
+                    key={msg._id} onClick={() => onViewMessage(msg)}
+                    className={`p-10 rounded-[3.5rem] border transition-all cursor-pointer group relative overflow-hidden ${msg.status === "UNREAD" ? "bg-brand-emerald/10 border-brand-emerald/30 border-2 shadow-[0_0_20px_rgba(0,245,160,0.1)]" : "bg-white/[0.03] border-white/5 hover:border-white/20 hover:bg-white/[0.05]"}`}
+                  >
+                    <div className="flex items-center justify-between mb-6 relative z-10">
+                      <div className="flex items-center gap-5">
+                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-brand-emerald/20 to-cyan-500/20 border border-brand-emerald/20 flex items-center justify-center font-black text-brand-emerald shadow-lg group-hover:scale-105 transition-transform">{msg.sender[0]}</div>
+                        <div>
+                          <p className="font-black text-lg tracking-tight group-hover:text-brand-emerald transition-colors">{msg.sender}</p>
+                          <p className="text-[9px] font-black text-gray-500 uppercase tracking-widest">{msg.type === 'BROADCAST' ? t("admin.global_folder") : t("admin.authenticated_type")}</p>
+                        </div>
+                      </div>
+                      <div className="flex flex-col items-end gap-2">
+                        <p className="text-[9px] font-black text-gray-400 uppercase tracking-widest">{new Date(msg.createdAt).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</p>
+                        <p className="text-[8px] font-black text-gray-600 uppercase tracking-widest">{new Date(msg.createdAt).toLocaleDateString()}</p>
+                      </div>
+                    </div>
+                    <h5 className="text-xl font-black mb-4 tracking-tight leading-snug max-w-[80%] uppercase text-xs">{msg.subject}</h5>
+                    <p className="text-sm text-gray-400 line-clamp-2 leading-relaxed font-bold opacity-80 group-hover:opacity-100 transition-opacity">{msg.content}</p>
+                  </div>
+                ))
+              )}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );
