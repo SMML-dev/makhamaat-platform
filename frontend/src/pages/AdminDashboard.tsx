@@ -1517,6 +1517,8 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
               <tr className={`text-[10px] font-black uppercase tracking-[0.2em] border-b ${settings.darkMode ? "text-gray-500 border-white/5 bg-white/[0.01]" : "text-gray-400 border-gray-100 bg-gray-50/50"}`}>
                 <th className="px-10 py-8">{t("admin.order_ref", "Order")}</th>
                 <th className="px-10 py-8">{t("admin.ledger_product")}</th>
+                <th className="px-10 py-8">{t("admin.order_client", "Client")}</th>
+                <th className="px-10 py-8">{t("admin.order_delivery", "Delivery / Contact")}</th>
                 <th className="px-10 py-8">{t("admin.ledger_volume")}</th>
                 <th className="px-10 py-8">{t("admin.order_status", "Status")}</th>
                 <th className="px-10 py-8">{t("common.date")}</th>
@@ -1526,7 +1528,7 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
             <tbody className="text-sm font-bold">
               {orders.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center py-20 text-gray-500 font-black uppercase tracking-widest text-[10px]">{t("admin.no_orders", "No orders found.")}</td>
+                  <td colSpan={8} className="text-center py-20 text-gray-500 font-black uppercase tracking-widest text-[10px]">{t("admin.no_orders", "No orders found.")}</td>
                 </tr>
               ) : (
                 orders.map((order: any) => (
@@ -1536,6 +1538,15 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                     </td>
                     <td className="px-10 py-6">
                       <span className="tracking-tight">{order.productId?.name || t("admin.global_sync")}</span>
+                    </td>
+                    <td className="px-10 py-6">
+                      <span className="tracking-tight">{order.actorId?.name || '-'}</span>
+                    </td>
+                    <td className="px-10 py-6">
+                      <div className="space-y-1 text-xs">
+                        {order.actorId?.phone && <div className="text-gray-400">{order.actorId.phone}</div>}
+                        {order.actorId?.address && <div className="text-gray-500">{order.actorId.address}</div>}
+                      </div>
                     </td>
                     <td className="px-10 py-6 font-black tracking-tighter text-lg">
                       {(order.quantity / 1000).toFixed(2)} <span className={`text-[10px] font-bold uppercase ml-1 ${settings.darkMode ? "text-gray-500" : "text-gray-400"}`}>T</span>
