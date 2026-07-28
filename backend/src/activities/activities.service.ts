@@ -152,6 +152,7 @@ export class ActivitiesService implements OnModuleInit {
         actorId: new Types.ObjectId(actorId),
         productId: existing.productId,
         quantity: 0,
+        cancelledBy: updated.cancelledBy || undefined,
         notes: `Statut commande ${existing.orderNumber || id} (${productName}) modifié de ${existing.status} à ${updated.status}`,
       });
     }
