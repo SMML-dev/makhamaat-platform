@@ -882,6 +882,8 @@ const AdminDashboard = () => {
     };
   }, [activities.length, products.length]);
 
+  const newOrdersCount = useMemo(() => (activities || []).filter((a: any) => a.type === 'SALE' && a.status === 'PENDING').length, [activities]);
+
 
   return (
     <MotionConfig reducedMotion={settings.reduceAnimations ? "always" : "never"}>
@@ -939,7 +941,7 @@ const AdminDashboard = () => {
             {[
               { id: "dashboard", icon: Activity, label: t("common.dashboard") },
               { id: "movements", icon: TrendingUp, label: t("admin.movements") },
-              { id: "orders", icon: Truck, label: t("admin.orders", "Orders") },
+              { id: "orders", icon: Truck, label: t("admin.orders", "Orders"), badge: newOrdersCount },
               { id: "stock", icon: Package, label: t("admin.stock_mgmt") },
               { id: "clients", icon: Users, label: t("admin.actors") },
               { id: "targets", icon: Target, label: t("admin.targets_nav", "Objectifs") },
