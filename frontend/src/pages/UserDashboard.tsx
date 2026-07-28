@@ -297,7 +297,8 @@ const UserDashboard = () => {
       const paymentInfo = paymentMethod === 'CASH' ? t('user.pay_on_delivery', 'Espèces à la livraison') :
         paymentMethod === 'CARD' ? t('user.pay_by_card', 'Carte Bancaire') : 'Mobile Money';
 
-      const orderNotes = `Commande client via Dashboard | Paiement: ${paymentInfo}\n${t('user.delivery_address', 'Adresse')}: ${profileData.address} | Tel: ${profileData.phone}`;
+      const clientName = profileData.name || user?.name || '';
+      const orderNotes = `Client: ${clientName}\nCommande client via Dashboard | Paiement: ${paymentInfo}\n${t('user.delivery_address', 'Adresse')}: ${profileData.address} | Tel: ${profileData.phone}`;
 
       // Create SALE activities for each item in the cart
       const orderPromises = cart.map(item =>

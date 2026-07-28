@@ -1540,19 +1540,23 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                       <span className="tracking-tight">{order.productId?.name || t("admin.global_sync")}</span>
                     </td>
                     <td className="px-10 py-6">
-                      <span className="tracking-tight">{order.actorId?.name || '-'}</span>
+                      <span className="tracking-tight">{order.notes?.match(/^Client:\s*(.+)$/m)?.[1]?.trim() || order.actorId?.name || '-'}</span>
                     </td>
                     <td className="px-10 py-6">
                       <div className="space-y-1 text-xs">
-                        {order.notes ? (
-                          <div className="text-gray-500 whitespace-pre-line">{order.notes.split('\n').slice(1).join('\n').trim() || order.notes}</div>
-                        ) : (
-                          <>
-                            {order.actorId?.phone && <div className="text-gray-400">{order.actorId.phone}</div>}
-                            {order.actorId?.address && <div className="text-gray-500">{order.actorId.address}</div>}
-                            {!order.actorId?.phone && !order.actorId?.address && <span className="text-gray-500">-</span>}
-                          </>
-                        )}
+                        {(() => {
+                          const deliveryLine = (order.notes || '').split('\n').find((l: string) => l.includes('Adresse:') || l.includes('Tel:') || l.includes('Address:') || l.includes('Phone:'));
+                          if (deliveryLine) return <div className="text-gray-500 whitespace-pre-line">{deliveryLine}</div>;
+                          if (order.actorId?.phone || order.actorId?.address) {
+                            return (
+                              <>
+                                {order.actorId?.phone && <div className="text-gray-400">{order.actorId.phone}</div>}
+                                {order.actorId?.address && <div className="text-gray-500">{order.actorId.address}</div>}
+                              </>
+                            );
+                          }
+                          return <span className="text-gray-500">-</span>;
+                        })()}
                       </div>
                     </td>
                     <td className="px-10 py-6 font-black tracking-tighter text-lg">
