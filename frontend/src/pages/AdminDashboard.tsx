@@ -1838,6 +1838,8 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
   const [content, setContent] = useState("");
   const [selectedActorId, setSelectedActorId] = useState<string>("");
   const [isSending, setIsSending] = useState(false);
+  const [composeMode, setComposeMode] = useState<"PARTNER" | "EMAIL">("PARTNER");
+  const [manualEmail, setManualEmail] = useState("");
 
   const filteredMessages = useMemo(() => {
     return messages.filter((m: any) =>
@@ -1860,19 +1862,29 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
   };
 
   const handleSend = async () => {
-    if (!selectedActor || !subject.trim() || !content.trim()) return;
+    if (composeMode === "EMAIL") {
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(manualEmail.trim()) || !subject.trim() || !content.trim()) return;
+    } else {
+      if (!selectedActor || !subject.trim() || !content.trim()) return;
+    }
     setIsSending(true);
     try {
-      await messagesService.sendMessage({
+      const payload: any = {
         sender: currentUser?.name || currentUser?.email || 'Admin',
         senderEmail: currentUser?.email,
         senderRole: currentUser?.role,
-        receiverId: selectedActor._id,
-        receiverEmail: (selectedActor as any).contactEmail || selectedActor.contact,
         subject: subject.trim(),
         content: content.trim(),
         type: "DIRECT"
-      });
+      };
+      if (composeMode === "EMAIL") {
+        payload.receiverEmail = manualEmail.trim();
+      } else {
+        payload.receiverId = selectedActor._id;
+        payload.receiverEmail = (selectedActor as any).contactEmail || selectedActor.contact;
+      }
+      await messagesService.sendMessage(payload);
       onMessageSent();
     } catch (error) {
       console.error('Send message error:', error);
@@ -1886,6 +1898,8 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
     if (messageFolder === "COMPOSE") {
       setSubject("");
       setContent("");
+      setManualEmail("");
+      setComposeMode("PARTNER");
       setSelectedActorId(composeTo ? composeTo._id : "");
     }
   }, [messageFolder, composeTo]);
@@ -1958,17 +1972,25 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
-              <div className="space-y-2">
+              <div className="space-y-4">
                 <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("common.receiver", "Destinataire")}</label>
-                {composeTo ? (
-                  <div className="flex items-center gap-4 p-4 bg-white/5 border border-white/10 rounded-2xl">
-                    <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-emerald/20 to-cyan-500/20 flex items-center justify-center font-black text-brand-emerald">{composeTo.name[0]}</div>
-                    <div>
-                      <p className="font-black text-brand-dark">{composeTo.name}</p>
-                      <p className="text-xs text-gray-500">{(composeTo as any).contactEmail || composeTo.contact}</p>
-                    </div>
-                  </div>
-                ) : (
+                <div className="flex gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setComposeMode("PARTNER")}
+                    className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${composeMode === "PARTNER" ? "bg-brand-emerald text-brand-dark" : "bg-white/5 text-gray-500 hover:bg-white/10"}`}
+                  >
+                    {t("admin.partner_mode", "Partenaire")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setComposeMode("EMAIL")}
+                    className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${composeMode === "EMAIL" ? "bg-brand-emerald text-brand-dark" : "bg-white/5 text-gray-500 hover:bg-white/10"}`}
+                  >
+                    {t("admin.email_mode", "Adresse email")}
+                  </button>
+                </div>
+                {composeMode === "PARTNER" ? (
                   <select
                     value={selectedActorId}
                     onChange={(e) => setSelectedActorId(e.target.value)}
@@ -1981,6 +2003,14 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
                       </option>
                     ))}
                   </select>
+                ) : (
+                  <input
+                    type="email"
+                    value={manualEmail}
+                    onChange={(e) => setManualEmail(e.target.value)}
+                    placeholder={t("admin.email_placeholder", "Entrez l'adresse email")}
+                    className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm"
+                  />
                 )}
               </div>
 
