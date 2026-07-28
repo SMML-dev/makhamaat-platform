@@ -1481,7 +1481,11 @@ const ActivityLog = ({ t, activities, settings }: any) => {
 };
 
 const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
-  const orders = useMemo(() => activities.filter((a: any) => a.type === 'SALE'), [activities]);
+  const orders = useMemo(() => activities
+    .filter((a: any) => a.type === 'SALE')
+    .sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()),
+    [activities]
+  );
 
   const statusOptions = [
     { id: 'PENDING', label: t("common.status_pending", "Pending") },
