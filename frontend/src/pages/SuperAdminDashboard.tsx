@@ -605,6 +605,8 @@ const SuperAdminDashboard = () => {
 
   const totalExports = activitiesList.filter(a => a.type === 'EXPORT').reduce((sum, a) => sum + (a.quantity || 0), 0);
 
+  const remainingOrders = activitiesList.filter((a: any) => a.type === 'SALE' && !['COMPLETED', 'CANCELLED'].includes(a.status)).length;
+
   const filteredActivitiesForCharts = activitiesList.filter(act => {
     if (selectedPeriod === 'ALL') return true;
     const date = new Date(act.createdAt);
@@ -1888,6 +1890,17 @@ const SuperAdminDashboard = () => {
                 <div className="mt-auto">
                   <div className="inline-flex items-center text-xs font-black bg-purple-900/50 text-purple-200 px-3 py-1.5 rounded-lg border border-purple-400/30">
                     <TrendingUp size={14} className="mr-2 text-brand-yellow"/> {t('superadmin.active_operations', 'Opérations Actives')}
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-gradient-to-br from-orange-500 to-red-600 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden group hover:-translate-y-1 transition-transform border border-orange-500/30">
+                <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:-rotate-12 transition-transform duration-500"><ShoppingCart size={90} /></div>
+                <p className="text-xs font-bold uppercase tracking-wider text-orange-100 mb-1">{t('superadmin.remaining_orders', 'Commandes en Cours')}</p>
+                <h3 className="text-5xl font-black mb-2 text-transparent bg-clip-text bg-gradient-to-b from-white to-orange-100">{remainingOrders}</h3>
+                <div className="mt-auto">
+                  <div className="inline-flex items-center text-xs font-black bg-orange-900/50 text-orange-100 px-3 py-1.5 rounded-lg border border-orange-400/30">
+                    <Package size={14} className="mr-2 text-white"/> {t('superadmin.pending_orders', 'Commandes Restantes')}
                   </div>
                 </div>
               </div>
