@@ -131,6 +131,9 @@ export class ActivitiesService implements OnModuleInit {
     const existing = await this.activityModel.findById(id).exec();
     if (!existing) return null;
 
+    if (updateActivityDto.status === 'CANCELLED' && !updateActivityDto.cancelledBy) {
+      updateActivityDto.cancelledBy = actorId ? 'ADMIN' : 'USER';
+    }
     const updated = await this.activityModel.findByIdAndUpdate(id, updateActivityDto, { new: true }).exec();
 
     // Handle status transitions for stock consistency
