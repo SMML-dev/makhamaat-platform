@@ -556,9 +556,12 @@ const SuperAdminDashboard = () => {
     }
     if (act.type === 'PRODUCT_UPDATED' && act.orderNumber) {
       if (act.notes) return act.notes;
-      return `${t('superadmin.status_change', 'Status change')} - ${t('superadmin.order', 'Order')} ${orderRef} - ${productName} - ${act.status || ''}`;
+      return `${t('superadmin.order_status_update', 'Order status update')} - ${t('superadmin.order', 'Order')} ${orderRef} - ${productName} - ${act.status || ''}`;
     }
-    if (['PRODUCT_CREATED', 'PRODUCT_UPDATED', 'PRODUCT_DELETED'].includes(act.type)) {
+    if (act.type === 'PRODUCT_UPDATED') {
+      return `${t('superadmin.product_modified', 'Product modified')} - ${productName}`;
+    }
+    if (['PRODUCT_CREATED', 'PRODUCT_DELETED'].includes(act.type)) {
       return `${t(`activity.type.${act.type}`, act.type)} - ${productName}`;
     }
     if (['PRODUCTION', 'TRANSFORMATION', 'PURCHASE', 'ADJUSTMENT'].includes(act.type)) {
