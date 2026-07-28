@@ -1538,7 +1538,8 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
                       <select
                         value={order.status}
                         onChange={(e) => onUpdateStatus(order._id, e.target.value)}
-                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none cursor-pointer transition-all ${statusStyle[order.status] || 'bg-white/5 text-gray-400'} border border-transparent hover:opacity-80`}
+                        disabled={order.cancelledBy === 'USER'}
+                        className={`px-4 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest outline-none transition-all ${statusStyle[order.status] || 'bg-white/5 text-gray-400'} border border-transparent ${order.cancelledBy === 'USER' ? 'cursor-not-allowed opacity-70' : 'cursor-pointer hover:opacity-80'}`}
                       >
                         {statusOptions.map(opt => (
                           <option key={opt.id} value={opt.id} className="text-brand-dark">{opt.label}</option>
