@@ -571,8 +571,10 @@ const SuperAdminDashboard = () => {
   };
 
   const getLogStatus = (act: any) => {
-    if (act.status === 'CANCELLED' && act.cancelledBy === 'USER') return t('superadmin.status_failed_user', 'Failed (cancelled by user)');
-    if (act.status === 'CANCELLED' && act.cancelledBy === 'ADMIN') return t('superadmin.status_cancelled_admin', 'Cancelled (by admin)');
+    const isAdminCanceller = act.cancelledBy === 'ADMIN' || act.actorId?.role === 'ADMIN' || act.actorId?.role === 'SUPER_ADMIN';
+    const isUserCanceller = act.cancelledBy === 'USER';
+    if (act.status === 'CANCELLED' && isUserCanceller) return t('superadmin.status_failed_user', 'Failed (cancelled by user)');
+    if (act.status === 'CANCELLED' && isAdminCanceller) return t('superadmin.status_cancelled_admin', 'Cancelled (by admin)');
     if (act.status === 'COMPLETED') return t('superadmin.status_success', 'Success');
     if (act.status === 'CANCELLED') return t('superadmin.status_cancelled', 'Cancelled');
     return t('superadmin.status_pending', 'Pending');
