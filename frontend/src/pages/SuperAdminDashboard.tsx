@@ -556,7 +556,7 @@ const SuperAdminDashboard = () => {
     }
     if (act.type === 'PRODUCT_UPDATED' && act.orderNumber) {
       if (act.notes) return act.notes;
-      return `${t('superadmin.order_status_update', 'Order status update')} - ${t('superadmin.order', 'Order')} ${orderRef} - ${productName} - ${act.status || ''}`;
+      return `${t('superadmin.status_changed', 'Status changed')} - ${t('superadmin.order', 'Order')} ${orderRef} - ${productName} - ${act.status || ''}`;
     }
     if (act.type === 'PRODUCT_UPDATED') {
       return `${t('superadmin.product_modified', 'Product modified')} - ${productName}`;
@@ -570,13 +570,21 @@ const SuperAdminDashboard = () => {
     return `${t(`activity.type.${act.type}`, act.type)} - ${productName}`;
   };
 
+  const getLogStatus = (act: any) => {
+    if (act.status === 'CANCELLED' && act.cancelledBy === 'USER') return t('superadmin.status_failed_user', 'Failed (cancelled by user)');
+    if (act.status === 'CANCELLED' && act.cancelledBy === 'ADMIN') return t('superadmin.status_cancelled_admin', 'Cancelled (by admin)');
+    if (act.status === 'COMPLETED') return t('superadmin.status_success', 'Success');
+    if (act.status === 'CANCELLED') return t('superadmin.status_cancelled', 'Cancelled');
+    return t('superadmin.status_pending', 'Pending');
+  };
+
   const filteredLogs = (logsData.data || []).map(act => ({
     id: act._id,
     time: formatDate(act.createdAt, i18n.language),
     user: act.actorId?.name || t('superadmin.system_actor', "Système"),
     ip: act.actorId?.email || t('superadmin.internal_service', "Service interne"),
     action: getLogAction(act),
-    status: act.status === 'COMPLETED' ? t('superadmin.status_success', 'Réussi') : act.status === 'CANCELLED' ? t('superadmin.status_failed', 'Échoué') : t('superadmin.status_pending', 'En Attente'),
+    status: getLogStatus(act),
     rawStatus: act.status,
     rawType: act.type,
     orderNumber: act.orderNumber
