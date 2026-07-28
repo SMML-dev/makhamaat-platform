@@ -145,21 +145,6 @@ export class ActivitiesService implements OnModuleInit {
       await this.reverseStockUpdate(existing);
     }
 
-    // Audit log for admin status changes
-    if (actorId && existing.status !== updated.status) {
-      const product = await this.productsService.findOne(existing.productId.toString());
-      const productName = product ? (product.localizedName || product.name) : 'Produit inconnu';
-      await this.activityModel.create({
-        type: ActivityType.PRODUCT_UPDATED,
-        status: updated.status,
-        actorId: new Types.ObjectId(actorId),
-        productId: existing.productId,
-        quantity: 0,
-        cancelledBy: updateActivityDto.cancelledBy || updated.cancelledBy || undefined,
-        notes: `Statut commande ${existing.orderNumber || id} (${productName}) modifié de ${existing.status} à ${updated.status}`,
-      });
-    }
-
     return updated;
   }
 
