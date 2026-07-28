@@ -116,7 +116,9 @@
     "confirm_activation": "Confirmer l'activation",
     "keep_current": "Garder mon état actuel",
     "activate_now": "Activer maintenant",
-    "back": "Retour"
+    "back": "Retour",
+    "next": "Suivant",
+    "remove": "Supprimer"
   },
   "login": {
     "title": "Bon Retour",
@@ -837,6 +839,8 @@
     "mobile_money_providers": "Wave, Orange, MTN"
   },
   "superadmin": {
+    "next": "Suivant",
+    "delete": "Supprimer",
     "role_label": "SUPER ADMIN",
     "default_name": "Chef Réseau",
     "export_report": "Exporter Rapport",
