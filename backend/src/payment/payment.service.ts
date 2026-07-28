@@ -98,6 +98,10 @@ export class PaymentService {
   }
 
   async verifyPayment(sessionId: string): Promise<boolean> {
+    if (!sessionId) {
+      return false;
+    }
+
     if (this.mode === 'SIMULATOR') {
       return true;
     }

@@ -25,19 +25,28 @@ export class PaymentController {
   ) {
     const baseUrl = returnUrlBase || this.frontendUrl;
     const activeSessionId = id || sessionId;
+
+    if (!activeSessionId || !orderIds) {
+      return res.redirect(`${baseUrl}/user/dashboard?tab=orders&payment=failed`);
+    }
+
     const isSuccess = await this.paymentService.verifyPayment(activeSessionId);
 
-    if (isSuccess && orderIds) {
+    if (isSuccess) {
       const ids = orderIds.split(',').filter(Boolean);
-      for (const id of ids) {
+      for (const orderId of ids) {
         try {
-          await this.activitiesService.update(id, {
+          const activity = await this.activitiesService.findOne(orderId);
+          if (!activity || activity.paymentMethod === 'CASH' || activity.paymentStatus === PaymentStatus.PAID) {
+            continue;
+          }
+          await this.activitiesService.update(orderId, {
             paymentStatus: PaymentStatus.PAID,
             status: ActivityStatus.COMPLETED,
             paymentId: activeSessionId,
           });
         } catch (error) {
-          console.error(`Failed to update order ${id}:`, error);
+          console.error(`Failed to update order ${orderId}:`, error);
         }
       }
       return res.redirect(`${baseUrl}/user/dashboard?tab=orders&payment=success`);
