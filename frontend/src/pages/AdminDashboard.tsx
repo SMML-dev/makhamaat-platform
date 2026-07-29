@@ -385,7 +385,7 @@ const AdminDashboard = () => {
       }
       setMessages(data);
     } catch (error) {
-      showToast(t("admin.error_messages", "Erreur messages."));
+      showToast(t("admin.error_messages"));
     }
   }, [t, showToast]);
 
@@ -423,18 +423,18 @@ const AdminDashboard = () => {
         content: replyContent,
         type: "DIRECT"
       });
-      showToast(t("admin.reply_success", "Réponse transmise !"));
+      showToast(t("admin.reply_success"));
       setShowViewMessageModal(false);
       setReplyContent("");
     } catch (error) {
       console.error('Reply send error:', error);
-      showToast(t("admin.reply_error", "Erreur lors de l'envoi."));
+      showToast(t("admin.reply_error"));
     }
   }, [selectedMessage, replyContent, t, showToast, currentUser]);
 
 
   const handleMessageSent = useCallback(() => {
-    showToast(t("admin.message_sent", "Message envoyé !"));
+    showToast(t("admin.message_sent"));
     setComposeTo(null);
     setMessageFolder("SENT");
     fetchMessages("SENT");
@@ -1888,7 +1888,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
       onMessageSent();
     } catch (error) {
       console.error('Send message error:', error);
-      toast.error(t("admin.send_error", "Erreur lors de l'envoi."));
+      toast.error(t("admin.send_error"));
     } finally {
       setIsSending(false);
     }
@@ -1919,7 +1919,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
           className="w-full mb-4 py-4 bg-blue-500 text-white rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-blue-500/20 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform"
         >
           <Plus size={16} />
-          {t("admin.new_message", "Nouveau Message")}
+          {t("admin.new_message")}
         </button>
 
         <button
@@ -1927,7 +1927,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
           className="w-full mb-8 py-4 bg-brand-emerald text-brand-dark rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-brand-emerald/20 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform"
         >
           <Globe size={16} />
-          {t("admin.new_broadcast", "Nouvelle Diffusion")}
+          {t("admin.new_broadcast")}
         </button>
 
         <nav className="space-y-3">
@@ -1962,32 +1962,32 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
         {messageFolder === "COMPOSE" ? (
           <div className="flex-1 flex flex-col min-w-0 bg-white/[0.01]">
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
-              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400">{t("admin.new_message", "Nouveau Message")}</h4>
+              <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400">{t("admin.new_message")}</h4>
               <button
                 onClick={handleCancelCompose}
                 className="p-2 text-gray-500 hover:text-red-500 hover:bg-red-500/10 rounded-full transition-all"
-                title={t("common.cancel", "Annuler")}
+                title={t("common.cancel")}
               >
                 <X size={18} />
               </button>
             </div>
             <div className="flex-1 overflow-y-auto p-10 space-y-6 custom-scrollbar">
               <div className="space-y-4">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("common.receiver", "Destinataire")}</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("common.receiver")}</label>
                 <div className="flex gap-2">
                   <button
                     type="button"
                     onClick={() => setComposeMode("PARTNER")}
                     className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${composeMode === "PARTNER" ? "bg-brand-emerald text-brand-dark" : "bg-white/5 text-gray-500 hover:bg-white/10"}`}
                   >
-                    {t("admin.partner_mode", "Partenaire")}
+                    {t("admin.partner_mode")}
                   </button>
                   <button
                     type="button"
                     onClick={() => setComposeMode("EMAIL")}
                     className={`flex-1 py-3 rounded-2xl font-black text-[10px] uppercase tracking-widest transition-all ${composeMode === "EMAIL" ? "bg-brand-emerald text-brand-dark" : "bg-white/5 text-gray-500 hover:bg-white/10"}`}
                   >
-                    {t("admin.email_mode", "Adresse email")}
+                    {t("admin.email_mode")}
                   </button>
                 </div>
                 {composeMode === "PARTNER" ? (
@@ -1996,7 +1996,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
                     onChange={(e) => setSelectedActorId(e.target.value)}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 text-sm"
                   >
-                    <option value="">{t("admin.select_partner", "Sélectionner un partenaire")}</option>
+                    <option value="">{t("admin.select_partner")}</option>
                     {actors.map((actor: any) => (
                       <option key={actor._id} value={actor._id}>
                         {actor.name} ({(actor as any).contactEmail || actor.contact})
@@ -2008,29 +2008,29 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
                     type="email"
                     value={manualEmail}
                     onChange={(e) => setManualEmail(e.target.value)}
-                    placeholder={t("admin.email_placeholder", "Entrez l'adresse email")}
+                    placeholder={t("admin.email_placeholder")}
                     className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm"
                   />
                 )}
               </div>
 
               <div className="space-y-2">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.subject", "Sujet")}</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.subject")}</label>
                 <input
                   type="text"
                   value={subject}
                   onChange={(e) => setSubject(e.target.value)}
-                  placeholder={t("admin.subject_placeholder", "Objet du message")}
+                  placeholder={t("admin.subject_placeholder")}
                   className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm"
                 />
               </div>
 
               <div className="space-y-2 flex-1 flex flex-col">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.message", "Message")}</label>
+                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{t("admin.message")}</label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
-                  placeholder={t("admin.message_placeholder", "Votre message...")}
+                  placeholder={t("admin.message_placeholder")}
                   className="flex-1 min-h-[180px] bg-white/5 border border-white/10 rounded-2xl p-5 text-brand-dark font-bold outline-none focus:border-brand-emerald/50 placeholder-gray-600 text-sm resize-none"
                 />
               </div>
@@ -2041,7 +2041,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
                 className="w-full py-4 bg-brand-emerald text-brand-dark rounded-2xl font-black text-[10px] uppercase tracking-[0.2em] shadow-lg shadow-brand-emerald/20 flex items-center justify-center gap-3 hover:scale-[1.02] transition-transform disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 <Send size={16} />
-                {isSending ? t("common.sending", "Envoi...") : t("common.send", "Envoyer")}
+                {isSending ? t("common.sending") : t("common.send")}
               </button>
             </div>
           </div>
@@ -2049,8 +2049,8 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
           <>
             <div className="p-8 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
               <div className="flex items-center gap-4">
-                <div className="px-5 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-500">{t("admin.msg_channel", "Channel A-04")}</div>
-                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400 hidden sm:block">{t("admin.msg_frequency", "Frequency: Secure Layer 7")}</h4>
+                <div className="px-5 py-2 rounded-full border border-white/10 text-[9px] font-black uppercase tracking-widest text-gray-500">{t("admin.msg_channel")}</div>
+                <h4 className="font-black uppercase text-[10px] tracking-[0.3em] text-gray-400 hidden sm:block">{t("admin.msg_frequency")}</h4>
               </div>
               <div className="relative group/search">
                 <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-gray-500 group-focus-within/search:text-brand-emerald transition-colors" />
@@ -2069,7 +2069,7 @@ const CommunicationCenter = ({ t, messages, setMessageFolder, messageFolder, onV
                   <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] border border-white/5 flex items-center justify-center animate-spin-slow">
                     <Inbox size={48} className="opacity-20" />
                   </div>
-                  <p className="font-black text-[10px] uppercase tracking-[0.5em] text-center max-w-[200px] leading-loose">{t("admin.no_signals_desc", "No active signals detected in this sector")}</p>
+                  <p className="font-black text-[10px] uppercase tracking-[0.5em] text-center max-w-[200px] leading-loose">{t("admin.no_signals_desc")}</p>
                 </div>
               ) : (
                 filteredMessages.map((msg: any) => (
