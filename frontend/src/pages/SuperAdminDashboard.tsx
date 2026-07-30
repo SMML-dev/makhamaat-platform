@@ -24,6 +24,15 @@ const formatDate = (dateString: string, language: string) => {
   });
 };
 
+// Helper to format FCFA values compactly for display in cards
+const formatFCFA = (value: number): { display: string; title: string } => {
+  const full = value.toLocaleString();
+  if (value >= 1000000000) return { display: `${(value / 1000000000).toFixed(2)} Md`, title: `${full} FCFA` };
+  if (value >= 1000000) return { display: `${(value / 1000000).toFixed(2)} M`, title: `${full} FCFA` };
+  if (value >= 1000) return { display: `${(value / 1000).toFixed(1)} K`, title: `${full} FCFA` };
+  return { display: full, title: `${full} FCFA` };
+};
+
 const SuperAdminDashboard = () => {
   const { t, i18n } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -689,8 +698,8 @@ const SuperAdminDashboard = () => {
     if (activeTab === 'finance') {
       doc.text(t('superadmin.finance_performance_overview', 'Aperçu des performances financières :'), 14, 45);
       const financeData = [
-        [t('superadmin.report_net_revenue', 'Revenu Net (Global)'), `${currentRevenue.toLocaleString()} FCFA`, `${revenueGoalMatch.toFixed(0)}% ${t('superadmin.of_goal', 'de l\'Objectif')}`],
-        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${totalStockValue.toLocaleString()} FCFA`, `${warehouseCapacity.toFixed(1)}% ${t('superadmin.capacity', 'Capacité')}`],
+        [t('superadmin.report_net_revenue', 'Revenu Net (Global)'), `${formatFCFA(currentRevenue).display} FCFA`, `${revenueGoalMatch.toFixed(0)}% ${t('superadmin.of_goal', 'de l\'Objectif')}`],
+        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${formatFCFA(totalStockValue).display} FCFA`, `${warehouseCapacity.toFixed(1)}% ${t('superadmin.capacity', 'Capacité')}`],
         [t('superadmin.report_external_ops', 'Opérations Externes'), `${totalExports} ${t('superadmin.report_active', 'Actif')}`, t('superadmin.report_fluid', 'Fluide')]
       ];
       autoTable(doc, {
@@ -1270,7 +1279,7 @@ const SuperAdminDashboard = () => {
                   <DollarSign size={24} />
                 </div>
                 <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.net_revenue', 'Revenu Net (Mensuel)')}</h3>
-                <p className="text-4xl font-black text-brand-dark mb-2">{currentRevenue.toLocaleString()} <span className="text-lg font-bold text-gray-400">FCFA</span></p>
+                <p className="text-4xl font-black text-brand-dark mb-2" title={formatFCFA(currentRevenue).title}>{formatFCFA(currentRevenue).display} <span className="text-lg font-bold text-gray-400">FCFA</span></p>
                 <div className={`flex items-center text-sm font-bold inline-flex px-2 py-1 rounded-md ${revenueGrowth >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>
                   <TrendingUp size={14} className={`mr-1 ${revenueGrowth < 0 && 'rotate-180'}`} /> {revenueGrowth > 0 ? '+' : ''}{revenueGrowth.toFixed(1)}% {t('superadmin.vs_prev_month', 'vs Mois Précédent')}
                 </div>
@@ -1282,7 +1291,7 @@ const SuperAdminDashboard = () => {
                   <Package size={24} />
                 </div>
                 <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.est_logistics_costs', 'Coûts Logistiques Estimés')}</h3>
-                <h3 className="text-4xl font-black text-brand-dark mb-2">{logisticsCosts.toLocaleString()} <span className="text-lg font-bold text-gray-400">FCFA</span></h3>
+                <h3 className="text-4xl font-black text-brand-dark mb-2" title={formatFCFA(logisticsCosts).title}>{formatFCFA(logisticsCosts).display} <span className="text-lg font-bold text-gray-400">FCFA</span></h3>
                 <div className="flex items-center text-sm font-bold text-blue-600 bg-blue-50 inline-flex px-2 py-1 rounded-md">
                    {t('superadmin.storage_transport', 'Stockage & Transport')}
                 </div>
@@ -1367,7 +1376,7 @@ const SuperAdminDashboard = () => {
                                 )}
                               </td>
                               <td className={`px-4 py-3 font-black ${i === 1 ? 'text-brand-green' : 'text-brand-dark'}`}>
-                                {((row.price * row.volume * 1000) / 1000000).toFixed(0)}M FCFA
+                                {formatFCFA(row.price * row.volume * 1000).display} FCFA
                               </td>
                             </tr>
                           ))}
@@ -1424,7 +1433,7 @@ const SuperAdminDashboard = () => {
                                 )}
                               </td>
                               <td className={`px-4 py-3 font-black ${i === 1 ? 'text-yellow-700' : 'text-brand-dark'}`}>
-                                {((row.price * row.volume * 1000) / 1000000).toFixed(0)}M FCFA
+                                {formatFCFA(row.price * row.volume * 1000).display} FCFA
                               </td>
                             </tr>
                           ))}
@@ -1813,7 +1822,7 @@ const SuperAdminDashboard = () => {
                   <Database size={20} className="text-green-300" />
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-green-100 mb-1">{t('superadmin.stock_value', 'Valeur du Stock')}</p>
-                <h3 className="text-4xl font-black mb-1">{totalStockValue.toLocaleString()} <span className="text-sm font-bold text-green-200">FCFA</span></h3>
+                <h3 className="text-4xl font-black mb-1" title={formatFCFA(totalStockValue).title}>{formatFCFA(totalStockValue).display} <span className="text-sm font-bold text-green-200">FCFA</span></h3>
                 <div className="mt-4">
                   <div className="w-full bg-black/20 rounded-full h-1.5 mb-1">
                     <div className="bg-green-300 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${warehouseCapacity}%` }}></div>
@@ -1826,7 +1835,7 @@ const SuperAdminDashboard = () => {
                 <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-20 group-hover:opacity-40 transition-opacity"><TrendingUp size={80} /></div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">{t('superadmin.monthly_revenue', 'Chiffre d\'Affaires Mensuel')}</p>
-                  <h3 className="text-4xl font-black mb-1">{currentRevenue.toLocaleString()} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
+                  <h3 className="text-4xl font-black mb-1" title={formatFCFA(currentRevenue).title}>{formatFCFA(currentRevenue).display} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
                 </div>
                 <div className="mt-4 bg-white/10 rounded-xl p-3 backdrop-blur-md border border-white/10">
                    <div className="flex items-center justify-between w-full mb-1 text-xs text-blue-100">
@@ -1877,7 +1886,7 @@ const SuperAdminDashboard = () => {
                             className="ml-0 sm:ml-2 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-md transition-all font-black shadow-sm shrink-0"
                             title="Modifier l'objectif"
                           >
-                            {revenueGoal.toLocaleString()} FCFA <Edit2 size={12} className="opacity-60 transition-opacity" />
+                            {formatFCFA(revenueGoal).display} FCFA <Edit2 size={12} className="opacity-60 transition-opacity" />
                           </button>
                         </div>
                      )}
