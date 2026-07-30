@@ -617,8 +617,6 @@ const SuperAdminDashboard = () => {
   const totalUsers = usersList.filter(u => u.role === 'USER').length;
   
   const totalStockValue = productsList.reduce((sum, p) => sum + ((p.price || 0) * (p.stockQuantity || 0)), 0);
-  const totalStockQuantity = productsList.reduce((sum, p) => sum + (p.stockQuantity || 0), 0);
-  const warehouseCapacity = Math.min(100, (totalStockQuantity / 10000) * 100);
 
   const totalExports = activitiesList.filter(a => a.type === 'EXPORT').reduce((sum, a) => sum + (a.quantity || 0), 0);
 
@@ -699,7 +697,7 @@ const SuperAdminDashboard = () => {
       doc.text(t('superadmin.finance_performance_overview', 'Aperçu des performances financières :'), 14, 45);
       const financeData = [
         [t('superadmin.report_net_revenue', 'Revenu Net (Global)'), `${formatFCFA(currentRevenue).display} FCFA`, `${revenueGoalMatch.toFixed(0)}% ${t('superadmin.of_goal', 'de l\'Objectif')}`],
-        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${formatFCFA(totalStockValue).display} FCFA`, `${warehouseCapacity.toFixed(1)}% ${t('superadmin.capacity', 'Capacité')}`],
+        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${formatFCFA(totalStockValue).display} FCFA`, ''],
         [t('superadmin.report_external_ops', 'Opérations Externes'), `${totalExports} ${t('superadmin.report_active', 'Actif')}`, t('superadmin.report_fluid', 'Fluide')]
       ];
       autoTable(doc, {
@@ -1823,12 +1821,6 @@ const SuperAdminDashboard = () => {
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-green-100 mb-1">{t('superadmin.stock_value', 'Valeur du Stock')}</p>
                 <h3 className="text-4xl font-black mb-1" title={formatFCFA(totalStockValue).title}>{formatFCFA(totalStockValue).display} <span className="text-sm font-bold text-green-200">FCFA</span></h3>
-                <div className="mt-4">
-                  <div className="w-full bg-black/20 rounded-full h-1.5 mb-1">
-                    <div className="bg-green-300 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${warehouseCapacity}%` }}></div>
-                  </div>
-                  <p className="text-[10px] font-bold text-green-200">{t('superadmin.warehouse_capacity_desc', { percent: warehouseCapacity.toFixed(1) })}</p>
-                </div>
               </div>
 
               <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden flex flex-col justify-between group hover:-translate-y-1 transition-transform">
