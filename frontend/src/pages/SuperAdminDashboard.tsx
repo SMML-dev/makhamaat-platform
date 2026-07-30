@@ -101,18 +101,38 @@ const SuperAdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resetFlowState, setResetFlowState] = useState<{ step: number; passwordAttempt: string; otp: string; loading: boolean; devOtp?: string }>({ step: 0, passwordAttempt: '', otp: '', loading: false });
   
-  const [revenueGoal, setRevenueGoal] = useState<number>(() => {
-    const stored = localStorage.getItem('makhamaat_revenue_goal');
-    if (stored) {
-      const val = parseInt(stored, 10);
-      // Migrate old values that were in millions
-      return val < 100000 ? val * 1000000 : val;
-    }
-    return 250000000;
-  });
   const [goalPeriod, setGoalPeriod] = useState<'weekly' | 'monthly' | 'yearly' | 'cycle'>(() => {
     return (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
   });
+
+  // Period-specific goals stored separately in localStorage
+  const defaultGoals: Record<string, number> = { weekly: 10000000, monthly: 50000000, yearly: 600000000, cycle: 200000000 };
+  const [revenueGoals, setRevenueGoals] = useState<Record<string, number>>(() => {
+    const goals: Record<string, number> = {};
+    (['weekly', 'monthly', 'yearly', 'cycle'] as const).forEach(p => {
+      const stored = localStorage.getItem(`makhamaat_revenue_goal_${p}`);
+      if (stored) {
+        const val = parseInt(stored, 10);
+        goals[p] = val < 100000 ? val * 1000000 : val;
+      } else {
+        // Migrate from old single key
+        const oldStored = localStorage.getItem('makhamaat_revenue_goal');
+        if (oldStored && p === 'monthly') {
+          const val = parseInt(oldStored, 10);
+          goals[p] = val < 100000 ? val * 1000000 : val;
+        } else {
+          goals[p] = defaultGoals[p];
+        }
+      }
+    });
+    return goals;
+  });
+  const revenueGoal = revenueGoals[goalPeriod] || defaultGoals[goalPeriod];
+
+  // Cycle custom date range
+  const [cycleStartDate, setCycleStartDate] = useState<string>(() => localStorage.getItem('makhamaat_cycle_start') || '');
+  const [cycleEndDate, setCycleEndDate] = useState<string>(() => localStorage.getItem('makhamaat_cycle_end') || '');
+
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [editGoalValue, setEditGoalValue] = useState(revenueGoal.toString());
   
@@ -338,8 +358,11 @@ const SuperAdminDashboard = () => {
   const handleSaveGoal = () => {
     const val = parseInt(editGoalValue, 10);
     if (!isNaN(val) && val > 0) {
-      setRevenueGoal(val);
-      localStorage.setItem('makhamaat_revenue_goal', val.toString());
+      setRevenueGoals(prev => {
+        const updated = { ...prev, [goalPeriod]: val };
+        return updated;
+      });
+      localStorage.setItem(`makhamaat_revenue_goal_${goalPeriod}`, val.toString());
     } else {
       setEditGoalValue(revenueGoal.toString());
     }
@@ -349,6 +372,7 @@ const SuperAdminDashboard = () => {
   const handleGoalPeriodChange = (period: 'weekly' | 'monthly' | 'yearly' | 'cycle') => {
     setGoalPeriod(period);
     localStorage.setItem('makhamaat_goal_period', period);
+    setEditGoalValue((revenueGoals[period] || defaultGoals[period]).toString());
   };
 
   const handleSaveLogisticsRates = () => {
@@ -702,7 +726,19 @@ const SuperAdminDashboard = () => {
         return sum + (act.quantity * price);
       }, 0);
     }
-    // monthly or cycle = current month
+    if (goalPeriod === 'cycle' && cycleStartDate && cycleEndDate) {
+      const start = new Date(cycleStartDate);
+      const end = new Date(cycleEndDate);
+      end.setHours(23, 59, 59, 999);
+      return completedSales.filter(act => {
+        const d = new Date(act.createdAt);
+        return d >= start && d <= end;
+      }).reduce((sum, act) => {
+        const price = act.unitPrice || act.productId.price || 0;
+        return sum + (act.quantity * price);
+      }, 0);
+    }
+    // monthly (default) or cycle without dates
     const now = new Date();
     return completedSales.filter(act => {
       const d = new Date(act.createdAt);
@@ -1881,6 +1917,23 @@ const SuperAdminDashboard = () => {
                        ))}
                      </div>
                    </div>
+                   {goalPeriod === 'cycle' && (
+                     <div className="flex items-center gap-2 mb-2 flex-wrap">
+                       <input
+                         type="date"
+                         value={cycleStartDate}
+                         onChange={(e) => { setCycleStartDate(e.target.value); localStorage.setItem('makhamaat_cycle_start', e.target.value); }}
+                         className="bg-blue-900/50 text-white text-[10px] rounded px-2 py-1 border border-white/10 focus:outline-none focus:border-brand-yellow"
+                       />
+                       <span className="text-blue-200 text-[10px]">→</span>
+                       <input
+                         type="date"
+                         value={cycleEndDate}
+                         onChange={(e) => { setCycleEndDate(e.target.value); localStorage.setItem('makhamaat_cycle_end', e.target.value); }}
+                         className="bg-blue-900/50 text-white text-[10px] rounded px-2 py-1 border border-white/10 focus:outline-none focus:border-brand-yellow"
+                       />
+                     </div>
+                   )}
                    <div className="flex items-center justify-between w-full mb-1 text-xs text-blue-100">
                      {isEditingGoal ? (
                         <div className="flex items-center bg-blue-900 border border-brand-yellow/50 rounded-md shadow-lg pl-3 h-8 flex-1 mr-2">

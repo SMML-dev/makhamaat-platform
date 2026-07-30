@@ -246,17 +246,27 @@ const AdminDashboard = () => {
   const [marketPriceData, setMarketPriceData] = useState<any[]>([]);
   const [isLoadingMarketPrices, setIsLoadingMarketPrices] = useState(false);
 
+  const [goalPeriod] = useState<'weekly' | 'monthly' | 'yearly' | 'cycle'>(() => {
+    return (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
+  });
   const [revenueGoal] = useState<number>(() => {
-    const stored = localStorage.getItem('makhamaat_revenue_goal');
+    const defaultGoals: Record<string, number> = { weekly: 10000000, monthly: 50000000, yearly: 600000000, cycle: 200000000 };
+    const period = (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
+    const stored = localStorage.getItem(`makhamaat_revenue_goal_${period}`);
     if (stored) {
       const val = parseInt(stored, 10);
       return val < 100000 ? val * 1000000 : val;
     }
-    return 250000000;
+    // Migrate from old single key
+    const oldStored = localStorage.getItem('makhamaat_revenue_goal');
+    if (oldStored && period === 'monthly') {
+      const val = parseInt(oldStored, 10);
+      return val < 100000 ? val * 1000000 : val;
+    }
+    return defaultGoals[period] || 50000000;
   });
-  const [goalPeriod] = useState<'weekly' | 'monthly' | 'yearly' | 'cycle'>(() => {
-    return (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
-  });
+  const [cycleStartDate] = useState<string>(() => localStorage.getItem('makhamaat_cycle_start') || '');
+  const [cycleEndDate] = useState<string>(() => localStorage.getItem('makhamaat_cycle_end') || '');
 
   const fetchMarketPriceData = useCallback(async () => {
     setIsLoadingMarketPrices(true);
@@ -791,7 +801,20 @@ const AdminDashboard = () => {
           return acc + (act.quantity * price);
         }, 0);
       }
-      // monthly or cycle = current month
+      if (goalPeriod === 'cycle' && cycleStartDate && cycleEndDate) {
+        const start = new Date(cycleStartDate);
+        const end = new Date(cycleEndDate);
+        end.setHours(23, 59, 59, 999);
+        return completedSales.filter(a => {
+          const d = new Date(a.createdAt);
+          return d >= start && d <= end;
+        }).reduce((acc, act) => {
+          const product = products.find(p => p._id === (act.productId?._id || act.productId));
+          const price = act.unitPrice || product?.price || 0;
+          return acc + (act.quantity * price);
+        }, 0);
+      }
+      // monthly or cycle without dates = current month
       const now = new Date();
       return completedSales.filter(a => {
         const d = new Date(a.createdAt);
@@ -817,7 +840,7 @@ const AdminDashboard = () => {
       skuVariation,
       mvtVariation
     };
-  }, [products, stocks, actors, activities, goalPeriod]);
+  }, [products, stocks, actors, activities, goalPeriod, cycleStartDate, cycleEndDate]);
 
   const chartData = useMemo(() => {
     const today = new Date();
