@@ -1260,7 +1260,7 @@ const AdminOverview = ({ t, stats, products, activities, settings, lastSync, cha
               <Target size={16} className="text-brand-emerald" />
               <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{t("admin.strategic_goal", "Objectif Stratégique")} ({t(`admin.goal_period_${goalPeriod}`, goalPeriod)})</span>
             </div>
-            <span className="text-brand-emerald font-black text-xs">{revenueGoal > 0 ? Math.min(100, (stats.goalComparisonRevenue / revenueGoal) * 100).toFixed(1) : '0'}%</span>
+            <span className="text-brand-emerald font-black text-xs">{revenueGoal > 0 ? (stats.goalComparisonRevenue / revenueGoal * 100).toFixed(1) : '0'}%</span>
           </div>
           <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-3">
             <motion.div

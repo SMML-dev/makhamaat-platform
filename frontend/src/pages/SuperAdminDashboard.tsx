@@ -748,7 +748,7 @@ const SuperAdminDashboard = () => {
       return sum + (act.quantity * price);
     }, 0);
   })();
-  const revenueGoalMatch = Math.min(100, (goalComparisonRevenue / revenueGoal) * 100);
+  const revenueGoalMatch = revenueGoal > 0 ? (goalComparisonRevenue / revenueGoal) * 100 : 0;
 
   const logisticsCosts = currentRevenue * logisticsRevenueRate + totalStockValue * logisticsStockRate;
 
@@ -1900,8 +1900,8 @@ const SuperAdminDashboard = () => {
               <div className="bg-gradient-to-br from-blue-600 to-blue-800 text-white p-6 rounded-3xl shadow-lg relative overflow-hidden flex flex-col justify-between group hover:-translate-y-1 transition-transform">
                 <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-20 group-hover:opacity-40 transition-opacity"><TrendingUp size={80} /></div>
                 <div>
-                  <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">{t('superadmin.monthly_revenue', 'Chiffre d\'Affaires Mensuel')}</p>
-                  <h3 className="text-4xl font-black mb-1" title={formatFCFA(currentRevenue).title}>{formatFCFA(currentRevenue).display} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
+                  <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">{t('superadmin.revenue_label', 'Chiffre d\'Affaires')} ({t(`superadmin.goal_period_${goalPeriod}`, goalPeriod)})</p>
+                  <h3 className="text-4xl font-black mb-1" title={formatFCFA(goalComparisonRevenue).title}>{formatFCFA(goalComparisonRevenue).display} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
                 </div>
                 <div className="mt-4 bg-white/10 rounded-xl p-3 backdrop-blur-md border border-white/10">
                    <div className="flex items-center justify-between w-full mb-2 text-xs text-blue-100">
@@ -1986,10 +1986,10 @@ const SuperAdminDashboard = () => {
                           </button>
                         </div>
                      )}
-                     <span className="text-white font-bold">{revenueGoalMatch.toFixed(0)}%</span>
+                     <span className="text-white font-bold">{revenueGoalMatch.toFixed(1)}%</span>
                    </div>
                    <div className="h-1 w-full bg-blue-900 rounded-full mt-2 overflow-hidden">
-                     <div className="h-full bg-brand-yellow rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,209,0,0.8)]" style={{ width: `${revenueGoalMatch}%` }}></div>
+                     <div className="h-full bg-brand-yellow rounded-full transition-all duration-1000 shadow-[0_0_10px_rgba(255,209,0,0.8)]" style={{ width: `${Math.min(100, revenueGoalMatch)}%` }}></div>
                    </div>
                 </div>
               </div>
