@@ -633,6 +633,7 @@ const SuperAdminDashboard = () => {
   }, {})).sort((a: any, b: any) => b.volume - a.volume).slice(0, 5);
 
   const revenueData = (() => {
+    const currentYear = new Date().getFullYear();
     const months = [
       t('superadmin.month_jan', 'Jan'), t('superadmin.month_feb', 'Fév'),
       t('superadmin.month_mar', 'Mar'), t('superadmin.month_apr', 'Avr'),
@@ -643,8 +644,10 @@ const SuperAdminDashboard = () => {
     ];
     const data = months.map(m => ({ name: m, revenue: 0 }));
     filteredActivitiesForCharts.forEach(act => {
-      if ((act.type === 'EXPORT' || act.type === 'SALE') && act.productId) {
-        const monthIdx = new Date(act.createdAt).getMonth();
+      if ((act.type === 'EXPORT' || act.type === 'SALE') && act.productId && act.status === 'COMPLETED') {
+        const actDate = new Date(act.createdAt);
+        if (selectedPeriod === 'ALL' && actDate.getFullYear() !== currentYear) return;
+        const monthIdx = actDate.getMonth();
         const price = act.productId.price || 0;
         data[monthIdx].revenue += (act.quantity * price) / 1000000;
       }
@@ -652,8 +655,9 @@ const SuperAdminDashboard = () => {
     return data;
   })();
 
-  const currentRevenue = revenueData[revenueData.length - 1]?.revenue || 0;
-  const previousRevenue = revenueData.length > 1 ? (revenueData[revenueData.length - 2]?.revenue || 0) : 0;
+  const currentMonthIdx = new Date().getMonth();
+  const currentRevenue = revenueData[currentMonthIdx]?.revenue || 0;
+  const previousRevenue = currentMonthIdx > 0 ? (revenueData[currentMonthIdx - 1]?.revenue || 0) : 0;
   const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
   const revenueGoalMatch = Math.min(100, (currentRevenue / revenueGoal) * 100);
 
@@ -1808,7 +1812,7 @@ const SuperAdminDashboard = () => {
                 <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-20 group-hover:opacity-40 transition-opacity"><TrendingUp size={80} /></div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">{t('superadmin.monthly_revenue', 'Chiffre d\'Affaires Mensuel')}</p>
-                  <h3 className="text-4xl font-black mb-1">{(revenueData[revenueData.length - 1]?.revenue || 0).toFixed(1)}M <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
+                  <h3 className="text-4xl font-black mb-1">{currentRevenue.toFixed(1)}M <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
                 </div>
                 <div className="mt-4 bg-white/10 rounded-xl p-3 backdrop-blur-md border border-white/10">
                    <div className="flex items-center justify-between w-full mb-1 text-xs text-blue-100">
