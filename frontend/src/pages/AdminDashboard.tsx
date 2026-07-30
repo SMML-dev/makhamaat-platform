@@ -38,7 +38,6 @@ import {
   Image as ImageIcon,
   Link as LinkIcon,
   Upload,
-  QrCode,
   Sun,
   Moon,
   Truck,
@@ -72,8 +71,6 @@ import { DeleteConfirmModal } from "../components/admin/modals/ConfirmationModal
 import TwoFactorModal from "../components/admin/modals/TwoFactorModal";
 import RotationConfirmModal from "../components/admin/modals/RotationConfirmModal";
 import BroadcastModal from "../components/admin/modals/BroadcastModal";
-import QRCodeModal from "../components/admin/modals/QRCodeModal";
-import SparklineChart from "../components/admin/charts/SparklineChart";
 import ObjectivesTab from "../components/SuperAdmin/ObjectivesTab";
 
 interface Message {
@@ -244,9 +241,6 @@ const AdminDashboard = () => {
   const [isRotating, setIsRotating] = useState(false);
   const [showBroadcastModal, setShowBroadcastModal] = useState(false);
   const [isBroadcasting, setIsBroadcasting] = useState(false);
-  const [showQRCodeModal, setShowQRCodeModal] = useState(false);
-  const [qrCodeTarget, setQrCodeTarget] = useState({ data: "", title: "" });
-  const [stockHistoryData, setStockHistoryData] = useState<Record<string, any[]>>({});
 
   // Market Price State
   const [marketPriceData, setMarketPriceData] = useState<any[]>([]);
@@ -290,19 +284,6 @@ const AdminDashboard = () => {
 
 
 
-  const fetchStockHistories = useCallback(async (productList: any[]) => {
-    try {
-      const histories: Record<string, any[]> = {};
-      await Promise.all(productList.map(async (p) => {
-        const history = await productsService.getProductHistory(p._id);
-        histories[p._id] = history.slice(-30);
-      }));
-      setStockHistoryData(histories);
-    } catch (error) {
-      console.error("Error fetching stock histories:", error);
-    }
-  }, []);
-
   const fetchDashboardData = useCallback(async () => {
     try {
       const [actorsData, productsData, activitiesData, badgeMessages] = await Promise.all([
@@ -320,12 +301,6 @@ const AdminDashboard = () => {
       showToast(t("common.error_data", "Erreur réseau."));
     }
   }, [t, showToast, i18n.language]);
-
-  useEffect(() => {
-    if (products.length > 0) {
-      fetchStockHistories(products);
-    }
-  }, [products, fetchStockHistories]);
 
   const handleUpdateOrderStatus = async (orderId: string, newStatus: string) => {
     try {
@@ -1138,7 +1113,6 @@ const AdminDashboard = () => {
                 setShowNewLotModal={setShowNewLotModal} setShowNewProductModal={setShowNewProductModal}
                 handleExportPDF={handleExportPDF} settings={settings}
                 handleEditProduct={handleEditProduct} handleDeleteProduct={handleDeleteProduct}
-                stockHistoryData={stockHistoryData} setQrCodeTarget={setQrCodeTarget} setShowQRCodeModal={setShowQRCodeModal}
               />}
               {activeTab === "clients" && <ActorManagement t={t} actors={actors} openProfile={openProfile} openContact={openContact} settings={{ ...settings, onAddActor: () => setShowNewActorModal(true) }} />}
               {activeTab === "targets" && <StrategicTargets t={t} projectionsData={projectionsData} settings={settings} />}
@@ -1177,8 +1151,6 @@ const AdminDashboard = () => {
           isRotating={isRotating}
           showBroadcastModal={showBroadcastModal} setShowBroadcastModal={setShowBroadcastModal}
           isBroadcasting={isBroadcasting} handleSendBroadcast={handleSendBroadcast}
-          showQRCodeModal={showQRCodeModal} setShowQRCodeModal={setShowQRCodeModal}
-          qrCodeTarget={qrCodeTarget}
         />
         <DeleteConfirmModal
           show={showDeleteModal}
@@ -1609,7 +1581,6 @@ const OrderManagement = ({ t, activities, settings, onUpdateStatus }: any) => {
 const StockManagement = ({
   t, filteredStocks, searchQuery, setSearchQuery, setShowNewLotModal, setShowNewProductModal,
   handleExportPDF, settings, handleEditProduct, handleDeleteProduct,
-  stockHistoryData, setQrCodeTarget, setShowQRCodeModal
 }: any) => {
   return (
     <div className="space-y-8">
@@ -1674,7 +1645,6 @@ const StockManagement = ({
                 }`}>
                 <th className="px-10 py-8">{t("admin.reference")}</th>
                 <th className="px-10 py-8 text-left">{t("admin.designation")}</th>
-                <th className="px-10 py-8">{t("admin.analytics", "Analytics")}</th>
                 <th className="px-10 py-8">{t("admin.ledger_volume")}</th>
                 <th className="px-10 py-8">{t("admin.threshold")}</th>
                 <th className="px-10 py-8 text-center">{t("common.status")}</th>
@@ -1690,12 +1660,6 @@ const StockManagement = ({
                       <div className="w-10 h-10 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center shadow-inner group-hover:scale-110 transition-transform"><Package size={16} className="text-brand-emerald" /></div>
                       <span className="tracking-tight">{s.product}</span>
                     </div>
-                  </td>
-                  <td className="px-10 py-6">
-                    <SparklineChart
-                      data={stockHistoryData[s.originalProduct?._id] || []}
-                      color={s.statusColor === "emerald" ? "#00f5a0" : s.statusColor === "yellow" ? "#facc15" : "#ef4444"}
-                    />
                   </td>
                   <td className="px-10 py-6 font-black tracking-tighter text-lg">{s.volume}</td>
                   <td className={`px-10 py-6 uppercase text-[9px] font-black tracking-[0.2em] transition-all ${settings.darkMode
@@ -1718,19 +1682,6 @@ const StockManagement = ({
                   </td>
                   <td className="px-10 py-6 text-right">
                     <div className="flex items-center justify-end gap-2">
-                      <button
-                        onClick={() => {
-                          setQrCodeTarget({
-                            data: s.originalProduct?._id || s.id,
-                            title: s.product
-                          });
-                          setShowQRCodeModal(true);
-                        }}
-                        className="p-3 bg-white/5 border border-white/10 rounded-xl text-gray-400 hover:text-brand-emerald hover:bg-brand-emerald/10 transition-all"
-                        title={t("admin.qr_code_title")}
-                      >
-                        <QrCode size={14} />
-                      </button>
                       <button
                         onClick={() => {
                           if (s.originalProduct) handleEditProduct(s.originalProduct);
@@ -2231,8 +2182,6 @@ const DashboardModals = ({
   showBroadcastModal, setShowBroadcastModal,
   handleSendBroadcast,
   isBroadcasting,
-  showQRCodeModal, setShowQRCodeModal,
-  qrCodeTarget,
 }: any) => {
   return (
     <>
@@ -2267,15 +2216,6 @@ const DashboardModals = ({
         settings={settings}
         t={t}
         isSending={isBroadcasting}
-      />
-
-      <QRCodeModal
-        show={showQRCodeModal}
-        onClose={() => setShowQRCodeModal(false)}
-        data={qrCodeTarget.data}
-        title={qrCodeTarget.title}
-        settings={settings}
-        t={t}
       />
 
       <AnimatePresence>
