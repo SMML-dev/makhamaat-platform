@@ -1492,11 +1492,12 @@ const SuperAdminDashboard = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" strokeOpacity={0.5} />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(v: any) => Number(v).toFixed(1)} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '16px', backgroundColor: '#1e293b', border: '1px solid #334155', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)' }}
                         labelStyle={{ fontWeight: 'bold', color: '#f8fafc' }}
                         itemStyle={{ color: '#FFD100', fontWeight: '900' }}
+                        formatter={(value: any) => [`${Number(value).toFixed(2)} M FCFA`, t('superadmin.revenue_m_fcfa', 'M FCFA')]}
                       />
                       <Area type="monotone" name={t('superadmin.revenue_m_fcfa', 'M FCFA')} dataKey="revenue" stroke="#FFD100" strokeWidth={4} fillOpacity={1} fill="url(#colorRevDark)" />
                     </AreaChart>
@@ -1974,11 +1975,12 @@ const SuperAdminDashboard = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 'bold'}} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(v: any) => Number(v).toFixed(1)} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                         labelStyle={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '4px' }}
                         itemStyle={{ color: '#00843D', fontWeight: '900' }}
+                        formatter={(value: any) => [`${Number(value).toFixed(2)} M FCFA`, t('superadmin.revenue_m_fcfa', 'Revenus (M FCFA)')]}
                       />
                       <Area type="monotone" name={t('superadmin.revenue_m_fcfa', 'Revenus (M FCFA)')} dataKey="revenue" stroke="#00843D" strokeWidth={5} fillOpacity={1} fill="url(#colorRevenueGraph)" activeDot={{r: 8, strokeWidth: 0, fill: '#FFD100', stroke: '#fff'}} />
                     </AreaChart>
