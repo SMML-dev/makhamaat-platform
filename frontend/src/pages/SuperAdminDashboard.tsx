@@ -658,7 +658,6 @@ const SuperAdminDashboard = () => {
   const revenueGoalMatch = Math.min(100, (currentRevenue / revenueGoal) * 100);
 
   const logisticsCosts = currentRevenue * logisticsRevenueRate + (totalStockValue / 1000000) * logisticsStockRate;
-  const operatingMargin = currentRevenue > 0 ? ((currentRevenue - logisticsCosts) / currentRevenue) * 100 : 0;
 
   const handleExport = () => {
     const doc = new jsPDF();
@@ -1277,17 +1276,6 @@ const SuperAdminDashboard = () => {
                 </div>
               </div>
 
-              <div className="bg-gradient-to-br from-white to-gray-50 p-6 rounded-3xl shadow-sm border border-gray-200 relative overflow-hidden group hover:shadow-xl transition-all duration-300 hover:-translate-y-2">
-                <div className="absolute top-0 right-0 p-4 opacity-5 group-hover:scale-125 group-hover:rotate-12 transition-transform duration-700 pointer-events-none"><TrendingUp size={80} /></div>
-                <div className="w-12 h-12 rounded-xl bg-purple-100 text-purple-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform duration-500">
-                  <TrendingUp size={24} />
-                </div>
-                <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.operating_margin', 'Marge Opérationnelle')}</h3>
-                <p className="text-4xl font-black text-brand-dark mb-2">{operatingMargin.toFixed(1)}<span className="text-3xl">%</span></p>
-                <div className={`flex items-center text-sm font-bold inline-flex px-2 py-1 rounded-md ${operatingMargin >= 20 ? 'text-green-600 bg-green-50' : 'text-yellow-600 bg-yellow-50'}`}>
-                   <CheckCircle size={14} className="mr-1" /> {operatingMargin >= 20 ? t('superadmin.excellent', 'Excellente') : t('superadmin.to_optimize', 'À Optimiser')}
-                </div>
-              </div>
             </div>
 
             <div className='grid grid-cols-1 gap-8'>
