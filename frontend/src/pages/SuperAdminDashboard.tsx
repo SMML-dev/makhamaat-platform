@@ -92,7 +92,15 @@ const SuperAdminDashboard = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [resetFlowState, setResetFlowState] = useState<{ step: number; passwordAttempt: string; otp: string; loading: boolean; devOtp?: string }>({ step: 0, passwordAttempt: '', otp: '', loading: false });
   
-  const [revenueGoal, setRevenueGoal] = useState<number>(() => parseInt(localStorage.getItem('makhamaat_revenue_goal') || '250', 10));
+  const [revenueGoal, setRevenueGoal] = useState<number>(() => {
+    const stored = localStorage.getItem('makhamaat_revenue_goal');
+    if (stored) {
+      const val = parseInt(stored, 10);
+      // Migrate old values that were in millions
+      return val < 100000 ? val * 1000000 : val;
+    }
+    return 250000000;
+  });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [editGoalValue, setEditGoalValue] = useState(revenueGoal.toString());
   
@@ -649,7 +657,7 @@ const SuperAdminDashboard = () => {
         if (selectedPeriod === 'ALL' && actDate.getFullYear() !== currentYear) return;
         const monthIdx = actDate.getMonth();
         const price = act.unitPrice || act.productId.price || 0;
-        data[monthIdx].revenue += (act.quantity * price) / 1000000;
+        data[monthIdx].revenue += (act.quantity * price);
       }
     });
     return data;
@@ -661,7 +669,7 @@ const SuperAdminDashboard = () => {
   const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
   const revenueGoalMatch = Math.min(100, (currentRevenue / revenueGoal) * 100);
 
-  const logisticsCosts = currentRevenue * logisticsRevenueRate + (totalStockValue / 1000000) * logisticsStockRate;
+  const logisticsCosts = currentRevenue * logisticsRevenueRate + totalStockValue * logisticsStockRate;
 
   const handleExport = () => {
     const doc = new jsPDF();
@@ -681,8 +689,8 @@ const SuperAdminDashboard = () => {
     if (activeTab === 'finance') {
       doc.text(t('superadmin.finance_performance_overview', 'Aperçu des performances financières :'), 14, 45);
       const financeData = [
-        [t('superadmin.report_net_revenue', 'Revenu Net (Global)'), `${currentRevenue.toFixed(1)}M FCFA`, `${revenueGoalMatch.toFixed(0)}% ${t('superadmin.of_goal', 'de l\'Objectif')}`],
-        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${(totalStockValue / 1000000).toFixed(1)}M FCFA`, `${warehouseCapacity.toFixed(1)}% ${t('superadmin.capacity', 'Capacité')}`],
+        [t('superadmin.report_net_revenue', 'Revenu Net (Global)'), `${currentRevenue.toLocaleString()} FCFA`, `${revenueGoalMatch.toFixed(0)}% ${t('superadmin.of_goal', 'de l\'Objectif')}`],
+        [t('superadmin.report_fixed_stock', 'Valeur du Stock Fixe'), `${totalStockValue.toLocaleString()} FCFA`, `${warehouseCapacity.toFixed(1)}% ${t('superadmin.capacity', 'Capacité')}`],
         [t('superadmin.report_external_ops', 'Opérations Externes'), `${totalExports} ${t('superadmin.report_active', 'Actif')}`, t('superadmin.report_fluid', 'Fluide')]
       ];
       autoTable(doc, {
@@ -1262,7 +1270,7 @@ const SuperAdminDashboard = () => {
                   <DollarSign size={24} />
                 </div>
                 <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.net_revenue', 'Revenu Net (Mensuel)')}</h3>
-                <p className="text-4xl font-black text-brand-dark mb-2">{currentRevenue.toFixed(1)}M <span className="text-lg font-bold text-gray-400">FCFA</span></p>
+                <p className="text-4xl font-black text-brand-dark mb-2">{currentRevenue.toLocaleString()} <span className="text-lg font-bold text-gray-400">FCFA</span></p>
                 <div className={`flex items-center text-sm font-bold inline-flex px-2 py-1 rounded-md ${revenueGrowth >= 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'}`}>
                   <TrendingUp size={14} className={`mr-1 ${revenueGrowth < 0 && 'rotate-180'}`} /> {revenueGrowth > 0 ? '+' : ''}{revenueGrowth.toFixed(1)}% {t('superadmin.vs_prev_month', 'vs Mois Précédent')}
                 </div>
@@ -1274,7 +1282,7 @@ const SuperAdminDashboard = () => {
                   <Package size={24} />
                 </div>
                 <h3 className="text-gray-500 font-bold uppercase tracking-wider text-xs mb-1">{t('superadmin.est_logistics_costs', 'Coûts Logistiques Estimés')}</h3>
-                <h3 className="text-4xl font-black text-brand-dark mb-2">{logisticsCosts.toFixed(1)}M <span className="text-lg font-bold text-gray-400">FCFA</span></h3>
+                <h3 className="text-4xl font-black text-brand-dark mb-2">{logisticsCosts.toLocaleString()} <span className="text-lg font-bold text-gray-400">FCFA</span></h3>
                 <div className="flex items-center text-sm font-bold text-blue-600 bg-blue-50 inline-flex px-2 py-1 rounded-md">
                    {t('superadmin.storage_transport', 'Stockage & Transport')}
                 </div>
@@ -1492,14 +1500,19 @@ const SuperAdminDashboard = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#334155" strokeOpacity={0.5} />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(v: any) => Number(v).toFixed(1)} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#94a3b8', fontSize: 12}} tickFormatter={(v: any) => {
+  const n = Number(v);
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  return n.toString();
+}} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '16px', backgroundColor: '#1e293b', border: '1px solid #334155', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.5)' }}
                         labelStyle={{ fontWeight: 'bold', color: '#f8fafc' }}
                         itemStyle={{ color: '#FFD100', fontWeight: '900' }}
-                        formatter={(value: any) => [`${Number(value).toFixed(2)} M FCFA`, t('superadmin.revenue_m_fcfa', 'M FCFA')]}
+                        formatter={(value: any) => [`${Number(value).toLocaleString()} FCFA`, t('superadmin.revenue_fcfa', 'FCFA')]}
                       />
-                      <Area type="monotone" name={t('superadmin.revenue_m_fcfa', 'M FCFA')} dataKey="revenue" stroke="#FFD100" strokeWidth={4} fillOpacity={1} fill="url(#colorRevDark)" />
+                      <Area type="monotone" name={t('superadmin.revenue_fcfa', 'FCFA')} dataKey="revenue" stroke="#FFD100" strokeWidth={4} fillOpacity={1} fill="url(#colorRevDark)" />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
@@ -1800,7 +1813,7 @@ const SuperAdminDashboard = () => {
                   <Database size={20} className="text-green-300" />
                 </div>
                 <p className="text-xs font-bold uppercase tracking-wider text-green-100 mb-1">{t('superadmin.stock_value', 'Valeur du Stock')}</p>
-                <h3 className="text-4xl font-black mb-1">{(totalStockValue / 1000000).toFixed(1)}M <span className="text-sm font-bold text-green-200">FCFA</span></h3>
+                <h3 className="text-4xl font-black mb-1">{totalStockValue.toLocaleString()} <span className="text-sm font-bold text-green-200">FCFA</span></h3>
                 <div className="mt-4">
                   <div className="w-full bg-black/20 rounded-full h-1.5 mb-1">
                     <div className="bg-green-300 h-1.5 rounded-full transition-all duration-1000" style={{ width: `${warehouseCapacity}%` }}></div>
@@ -1813,7 +1826,7 @@ const SuperAdminDashboard = () => {
                 <div className="absolute top-1/2 right-4 -translate-y-1/2 opacity-20 group-hover:opacity-40 transition-opacity"><TrendingUp size={80} /></div>
                 <div>
                   <p className="text-xs font-bold uppercase tracking-wider text-blue-200 mb-1">{t('superadmin.monthly_revenue', 'Chiffre d\'Affaires Mensuel')}</p>
-                  <h3 className="text-4xl font-black mb-1">{currentRevenue.toFixed(1)}M <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
+                  <h3 className="text-4xl font-black mb-1">{currentRevenue.toLocaleString()} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
                 </div>
                 <div className="mt-4 bg-white/10 rounded-xl p-3 backdrop-blur-md border border-white/10">
                    <div className="flex items-center justify-between w-full mb-1 text-xs text-blue-100">
@@ -1834,7 +1847,7 @@ const SuperAdminDashboard = () => {
                             }}
                             autoFocus
                           />
-                          <span className="text-blue-300 font-bold pr-2">M</span>
+                          <span className="text-blue-300 font-bold pr-2">FCFA</span>
                           <button 
                             onClick={handleSaveGoal}
                             title="Sauvegarder"
@@ -1864,7 +1877,7 @@ const SuperAdminDashboard = () => {
                             className="ml-0 sm:ml-2 flex items-center justify-center gap-1.5 bg-white/10 hover:bg-white/20 text-white px-2 py-1 rounded-md transition-all font-black shadow-sm shrink-0"
                             title="Modifier l'objectif"
                           >
-                            {revenueGoal}M <Edit2 size={12} className="opacity-60 transition-opacity" />
+                            {revenueGoal.toLocaleString()} FCFA <Edit2 size={12} className="opacity-60 transition-opacity" />
                           </button>
                         </div>
                      )}
@@ -1975,14 +1988,19 @@ const SuperAdminDashboard = () => {
                       </defs>
                       <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
                       <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12, fontWeight: 'bold'}} dy={10} />
-                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(v: any) => Number(v).toFixed(1)} />
+                      <YAxis axisLine={false} tickLine={false} tick={{fill: '#64748b', fontSize: 12}} tickFormatter={(v: any) => {
+  const n = Number(v);
+  if (n >= 1000000) return `${(n / 1000000).toFixed(1)}M`;
+  if (n >= 1000) return `${(n / 1000).toFixed(0)}K`;
+  return n.toString();
+}} />
                       <Tooltip 
                         contentStyle={{ borderRadius: '16px', border: '1px solid #e2e8f0', boxShadow: '0 10px 15px -3px rgb(0 0 0 / 0.1)', padding: '12px' }}
                         labelStyle={{ fontWeight: 'bold', color: '#1e293b', marginBottom: '4px' }}
                         itemStyle={{ color: '#00843D', fontWeight: '900' }}
-                        formatter={(value: any) => [`${Number(value).toFixed(2)} M FCFA`, t('superadmin.revenue_m_fcfa', 'Revenus (M FCFA)')]}
+                        formatter={(value: any) => [`${Number(value).toLocaleString()} FCFA`, t('superadmin.revenue_fcfa', 'Revenus (FCFA)')]}
                       />
-                      <Area type="monotone" name={t('superadmin.revenue_m_fcfa', 'Revenus (M FCFA)')} dataKey="revenue" stroke="#00843D" strokeWidth={5} fillOpacity={1} fill="url(#colorRevenueGraph)" activeDot={{r: 8, strokeWidth: 0, fill: '#FFD100', stroke: '#fff'}} />
+                      <Area type="monotone" name={t('superadmin.revenue_fcfa', 'Revenus (FCFA)')} dataKey="revenue" stroke="#00843D" strokeWidth={5} fillOpacity={1} fill="url(#colorRevenueGraph)" activeDot={{r: 8, strokeWidth: 0, fill: '#FFD100', stroke: '#fff'}} />
                     </AreaChart>
                   </ResponsiveContainer>
                 </div>
