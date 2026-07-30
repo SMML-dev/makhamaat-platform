@@ -683,29 +683,34 @@ const SuperAdminDashboard = () => {
   const previousRevenue = currentMonthIdx > 0 ? (revenueData[currentMonthIdx - 1]?.revenue || 0) : 0;
   const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
 
-  // Compute revenue for the goal period
+  // Compute revenue for the goal period (uses all activities, not period-filtered)
   const goalComparisonRevenue = (() => {
+    const completedSales = activitiesList.filter(act => (act.type === 'EXPORT' || act.type === 'SALE') && act.productId && act.status === 'COMPLETED');
     if (goalPeriod === 'yearly') {
-      return revenueData.reduce((sum, m) => sum + m.revenue, 0);
+      const currentYear = new Date().getFullYear();
+      return completedSales.filter(act => new Date(act.createdAt).getFullYear() === currentYear).reduce((sum, act) => {
+        const price = act.unitPrice || act.productId.price || 0;
+        return sum + (act.quantity * price);
+      }, 0);
     }
     if (goalPeriod === 'weekly') {
       const now = new Date();
       const weekStart = new Date(now);
       weekStart.setDate(now.getDate() - 7);
-      return filteredActivitiesForCharts
-        .filter(act => (act.type === 'EXPORT' || act.type === 'SALE') && act.productId && act.status === 'COMPLETED')
-        .filter(act => new Date(act.createdAt) >= weekStart)
-        .reduce((sum, act) => {
-          const price = act.unitPrice || act.productId.price || 0;
-          return sum + (act.quantity * price);
-        }, 0);
+      return completedSales.filter(act => new Date(act.createdAt) >= weekStart).reduce((sum, act) => {
+        const price = act.unitPrice || act.productId.price || 0;
+        return sum + (act.quantity * price);
+      }, 0);
     }
-    if (goalPeriod === 'cycle') {
-      // Cycle = current month (same as monthly for now, can be customized)
-      return currentRevenue;
-    }
-    // monthly (default)
-    return currentRevenue;
+    // monthly or cycle = current month
+    const now = new Date();
+    return completedSales.filter(act => {
+      const d = new Date(act.createdAt);
+      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+    }).reduce((sum, act) => {
+      const price = act.unitPrice || act.productId.price || 0;
+      return sum + (act.quantity * price);
+    }, 0);
   })();
   const revenueGoalMatch = Math.min(100, (goalComparisonRevenue / revenueGoal) * 100);
 
