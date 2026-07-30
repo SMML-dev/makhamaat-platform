@@ -709,7 +709,7 @@ const AdminDashboard = () => {
     const totalVolumeT = (products.reduce((acc, p) => acc + p.stockQuantity, 0) / 1000).toFixed(1);
 
     const totalRevenue = activities.reduce((acc, act) => {
-      if (act.type === 'SALE' || act.type === 'EXPORT') {
+      if ((act.type === 'SALE' || act.type === 'EXPORT') && act.status === 'COMPLETED') {
         const product = products.find(p => p._id === (act.productId?._id || act.productId));
         const price = act.unitPrice || product?.price || 0;
         return acc + (act.quantity * price);
@@ -733,7 +733,7 @@ const AdminDashboard = () => {
     });
 
     const getRevenue = (acts: any[]) => acts.reduce((acc, act) => {
-      if (act.type === 'SALE' || act.type === 'EXPORT') {
+      if ((act.type === 'SALE' || act.type === 'EXPORT') && act.status === 'COMPLETED') {
         const product = products.find(p => p._id === (act.productId?._id || act.productId));
         const price = act.unitPrice || product?.price || 0;
         return acc + (act.quantity * price);
@@ -791,7 +791,7 @@ const AdminDashboard = () => {
         const monthlyRevenue = activities.reduce((acc, act) => {
           const date = new Date(act.createdAt);
           if (date.getMonth() === index && date.getFullYear() === currentYear) {
-            if (act.type === 'SALE' || act.type === 'EXPORT') {
+            if ((act.type === 'SALE' || act.type === 'EXPORT') && act.status === 'COMPLETED') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
               const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
@@ -814,7 +814,7 @@ const AdminDashboard = () => {
         const dailyRevenue = activities.reduce((acc, act) => {
           const actDate = new Date(act.createdAt);
           if (actDate.toDateString() === day.toDateString()) {
-            if (act.type === 'SALE' || act.type === 'EXPORT') {
+            if ((act.type === 'SALE' || act.type === 'EXPORT') && act.status === 'COMPLETED') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
               const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
@@ -842,7 +842,7 @@ const AdminDashboard = () => {
         const dailyRevenue = activities.reduce((acc, act) => {
           const actDate = new Date(act.createdAt);
           if (actDate.toDateString() === day.toDateString()) {
-            if (act.type === 'SALE' || act.type === 'EXPORT') {
+            if ((act.type === 'SALE' || act.type === 'EXPORT') && act.status === 'COMPLETED') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
               const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
