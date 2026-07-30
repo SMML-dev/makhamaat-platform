@@ -246,7 +246,17 @@ const AdminDashboard = () => {
   const [marketPriceData, setMarketPriceData] = useState<any[]>([]);
   const [isLoadingMarketPrices, setIsLoadingMarketPrices] = useState(false);
 
-  const [revenueGoal] = useState<number>(() => parseInt(localStorage.getItem('makhamaat_revenue_goal') || '250', 10));
+  const [revenueGoal] = useState<number>(() => {
+    const stored = localStorage.getItem('makhamaat_revenue_goal');
+    if (stored) {
+      const val = parseInt(stored, 10);
+      return val < 100000 ? val * 1000000 : val;
+    }
+    return 250000000;
+  });
+  const [goalPeriod] = useState<'weekly' | 'monthly' | 'yearly' | 'cycle'>(() => {
+    return (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
+  });
 
   const fetchMarketPriceData = useCallback(async () => {
     setIsLoadingMarketPrices(true);
@@ -761,10 +771,43 @@ const AdminDashboard = () => {
 
     const mvtVariation = previousPeriodActivities.length === 0 ? (currentPeriodActivities.length > 0 ? '+100%' : '0%') : `${currentPeriodActivities.length > previousPeriodActivities.length ? '+' : ''}${(((currentPeriodActivities.length - previousPeriodActivities.length) / previousPeriodActivities.length) * 100).toFixed(1)}%`;
 
+    // Compute revenue for the goal period
+    const goalComparisonRevenue = (() => {
+      const completedSales = activities.filter(a => (a.type === 'SALE' || a.type === 'EXPORT') && a.status === 'COMPLETED');
+      if (goalPeriod === 'yearly') {
+        const currentYear = new Date().getFullYear();
+        return completedSales.filter(a => new Date(a.createdAt).getFullYear() === currentYear).reduce((acc, act) => {
+          const product = products.find(p => p._id === (act.productId?._id || act.productId));
+          const price = act.unitPrice || product?.price || 0;
+          return acc + (act.quantity * price);
+        }, 0);
+      }
+      if (goalPeriod === 'weekly') {
+        const weekStart = new Date();
+        weekStart.setDate(weekStart.getDate() - 7);
+        return completedSales.filter(a => new Date(a.createdAt) >= weekStart).reduce((acc, act) => {
+          const product = products.find(p => p._id === (act.productId?._id || act.productId));
+          const price = act.unitPrice || product?.price || 0;
+          return acc + (act.quantity * price);
+        }, 0);
+      }
+      // monthly or cycle = current month
+      const now = new Date();
+      return completedSales.filter(a => {
+        const d = new Date(a.createdAt);
+        return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      }).reduce((acc, act) => {
+        const product = products.find(p => p._id === (act.productId?._id || act.productId));
+        const price = act.unitPrice || product?.price || 0;
+        return acc + (act.quantity * price);
+      }, 0);
+    })();
+
     return {
       totalVolumeT,
       totalRevenue: totalRevenue.toLocaleString(),
       rawTotalRevenue: totalRevenue,
+      goalComparisonRevenue,
       lowStockCount: stocks.filter(s => s.statusColor !== "emerald").length,
       activeSuppliers,
       activeClients,
@@ -774,7 +817,7 @@ const AdminDashboard = () => {
       skuVariation,
       mvtVariation
     };
-  }, [products, stocks, actors, activities]);
+  }, [products, stocks, actors, activities, goalPeriod]);
 
   const chartData = useMemo(() => {
     const today = new Date();
@@ -1105,7 +1148,7 @@ const AdminDashboard = () => {
               exit={{ opacity: 0, y: -20 }}
               transition={{ duration: 0.4, ease: "easeOut" }}
             >
-              {activeTab === "dashboard" && <AdminOverview t={t} stats={stats} products={products} activities={activities} settings={settings} lastSync={lastSync} chartData={chartData} sparklines={sparklines} onViewAll={() => setActiveTab("movements")} chartFilter={chartFilter} setChartFilter={setChartFilter} revenueGoal={revenueGoal} />}
+              {activeTab === "dashboard" && <AdminOverview t={t} stats={stats} products={products} activities={activities} settings={settings} lastSync={lastSync} chartData={chartData} sparklines={sparklines} onViewAll={() => setActiveTab("movements")} chartFilter={chartFilter} setChartFilter={setChartFilter} revenueGoal={revenueGoal} goalPeriod={goalPeriod} />}
               {activeTab === "movements" && <ActivityLog t={t} activities={activities} products={products} settings={settings} />}
               {activeTab === "orders" && <OrderManagement t={t} activities={activities} settings={settings} onUpdateStatus={handleUpdateOrderStatus} />}
               {activeTab === "stock" && <StockManagement
@@ -1168,7 +1211,7 @@ const AdminDashboard = () => {
 
 // --- SUB-COMPONENTS FOR CLEANER CODE ---
 
-const AdminOverview = ({ t, stats, products, activities, settings, lastSync, chartData, sparklines, onViewAll, chartFilter, setChartFilter, revenueGoal }: any) => {
+const AdminOverview = ({ t, stats, products, activities, settings, lastSync, chartData, sparklines, onViewAll, chartFilter, setChartFilter, revenueGoal, goalPeriod }: any) => {
   const getSparklineData = (data: number[], color: string) => {
     return data.map(v => ({ value: v, color }));
   };
@@ -1192,21 +1235,21 @@ const AdminOverview = ({ t, stats, products, activities, settings, lastSync, cha
           <div className="flex items-center justify-between mb-4">
             <div className="flex items-center gap-2">
               <Target size={16} className="text-brand-emerald" />
-              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{t("admin.strategic_goal", "Objectif Stratégique")}</span>
+              <span className="text-[10px] font-black uppercase tracking-widest text-gray-500">{t("admin.strategic_goal", "Objectif Stratégique")} ({t(`admin.goal_period_${goalPeriod}`, goalPeriod)})</span>
             </div>
-            <span className="text-brand-emerald font-black text-xs">{(stats.rawTotalRevenue / (revenueGoal * 1000000) * 100).toFixed(1)}%</span>
+            <span className="text-brand-emerald font-black text-xs">{revenueGoal > 0 ? Math.min(100, (stats.goalComparisonRevenue / revenueGoal) * 100).toFixed(1) : '0'}%</span>
           </div>
           <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden mb-3">
             <motion.div
               initial={{ width: 0 }}
-              animate={{ width: `${Math.min(100, (stats.rawTotalRevenue / (revenueGoal * 1000000) * 100))}%` }}
+              animate={{ width: `${Math.min(100, revenueGoal > 0 ? (stats.goalComparisonRevenue / revenueGoal) * 100 : 0)}%` }}
               className="h-full bg-brand-emerald rounded-full shadow-[0_0_15px_rgba(0,245,160,0.5)]"
               transition={{ duration: 1.5, ease: "easeOut" }}
             />
           </div>
           <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-gray-400">
             <span>{t("admin.performance")}</span>
-            <span className={settings.darkMode ? "text-white" : "text-brand-dark"}>{revenueGoal}M FCFA</span>
+            <span className={settings.darkMode ? "text-white" : "text-brand-dark"}>{revenueGoal.toLocaleString()} FCFA</span>
           </div>
         </div>
       </div>

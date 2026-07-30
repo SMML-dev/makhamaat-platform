@@ -110,6 +110,9 @@ const SuperAdminDashboard = () => {
     }
     return 250000000;
   });
+  const [goalPeriod, setGoalPeriod] = useState<'weekly' | 'monthly' | 'yearly' | 'cycle'>(() => {
+    return (localStorage.getItem('makhamaat_goal_period') as 'weekly' | 'monthly' | 'yearly' | 'cycle') || 'monthly';
+  });
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [editGoalValue, setEditGoalValue] = useState(revenueGoal.toString());
   
@@ -341,6 +344,11 @@ const SuperAdminDashboard = () => {
       setEditGoalValue(revenueGoal.toString());
     }
     setIsEditingGoal(false);
+  };
+
+  const handleGoalPeriodChange = (period: 'weekly' | 'monthly' | 'yearly' | 'cycle') => {
+    setGoalPeriod(period);
+    localStorage.setItem('makhamaat_goal_period', period);
   };
 
   const handleSaveLogisticsRates = () => {
@@ -674,7 +682,32 @@ const SuperAdminDashboard = () => {
   const currentRevenue = revenueData[currentMonthIdx]?.revenue || 0;
   const previousRevenue = currentMonthIdx > 0 ? (revenueData[currentMonthIdx - 1]?.revenue || 0) : 0;
   const revenueGrowth = previousRevenue > 0 ? ((currentRevenue - previousRevenue) / previousRevenue) * 100 : 0;
-  const revenueGoalMatch = Math.min(100, (currentRevenue / revenueGoal) * 100);
+
+  // Compute revenue for the goal period
+  const goalComparisonRevenue = (() => {
+    if (goalPeriod === 'yearly') {
+      return revenueData.reduce((sum, m) => sum + m.revenue, 0);
+    }
+    if (goalPeriod === 'weekly') {
+      const now = new Date();
+      const weekStart = new Date(now);
+      weekStart.setDate(now.getDate() - 7);
+      return filteredActivitiesForCharts
+        .filter(act => (act.type === 'EXPORT' || act.type === 'SALE') && act.productId && act.status === 'COMPLETED')
+        .filter(act => new Date(act.createdAt) >= weekStart)
+        .reduce((sum, act) => {
+          const price = act.unitPrice || act.productId.price || 0;
+          return sum + (act.quantity * price);
+        }, 0);
+    }
+    if (goalPeriod === 'cycle') {
+      // Cycle = current month (same as monthly for now, can be customized)
+      return currentRevenue;
+    }
+    // monthly (default)
+    return currentRevenue;
+  })();
+  const revenueGoalMatch = Math.min(100, (goalComparisonRevenue / revenueGoal) * 100);
 
   const logisticsCosts = currentRevenue * logisticsRevenueRate + totalStockValue * logisticsStockRate;
 
@@ -1830,6 +1863,19 @@ const SuperAdminDashboard = () => {
                   <h3 className="text-4xl font-black mb-1" title={formatFCFA(currentRevenue).title}>{formatFCFA(currentRevenue).display} <span className="text-sm font-bold text-blue-200">FCFA</span></h3>
                 </div>
                 <div className="mt-4 bg-white/10 rounded-xl p-3 backdrop-blur-md border border-white/10">
+                   <div className="flex items-center justify-between w-full mb-2 text-xs text-blue-100">
+                     <div className="flex items-center gap-1 flex-wrap">
+                       {(['weekly', 'monthly', 'yearly', 'cycle'] as const).map(p => (
+                         <button
+                           key={p}
+                           onClick={() => handleGoalPeriodChange(p)}
+                           className={`px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider transition-all ${goalPeriod === p ? 'bg-brand-yellow text-brand-dark' : 'bg-white/10 text-blue-100 hover:bg-white/20'}`}
+                         >
+                           {t(`superadmin.goal_period_${p}`, p)}
+                         </button>
+                       ))}
+                     </div>
+                   </div>
                    <div className="flex items-center justify-between w-full mb-1 text-xs text-blue-100">
                      {isEditingGoal ? (
                         <div className="flex items-center bg-blue-900 border border-brand-yellow/50 rounded-md shadow-lg pl-3 h-8 flex-1 mr-2">
@@ -1869,7 +1915,7 @@ const SuperAdminDashboard = () => {
                         </div>
                      ) : (
                         <div className="flex items-center flex-wrap gap-y-1">
-                          <span className="opacity-90 font-black">{t('superadmin.monthly_goal', 'Objectif (Mensuel)')}</span>
+                          <span className="opacity-90 font-black">{t('superadmin.goal_label', 'Objectif')} ({t(`superadmin.goal_period_${goalPeriod}`, goalPeriod)})</span>
                           <button 
                             onClick={() => {
                               setEditGoalValue(revenueGoal.toString());
