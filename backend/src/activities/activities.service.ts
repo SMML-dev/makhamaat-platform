@@ -38,6 +38,14 @@ export class ActivitiesService implements OnModuleInit {
 
     createActivityDto.orderNumber = `${datePrefix}-A${nextSequence}`;
 
+    // Capture the product's current price as unitPrice for SALE/EXPORT activities
+    if ([ActivityType.SALE, ActivityType.EXPORT].includes(createActivityDto.type) && createActivityDto.productId) {
+      if (!createActivityDto.unitPrice) {
+        const product = await this.productsService.findOne(createActivityDto.productId);
+        createActivityDto.unitPrice = product?.price || 0;
+      }
+    }
+
     // Pre-create validation: Check stock if activity is already COMPLETED or being created as COMPLETED
     if (createActivityDto.status === ActivityStatus.COMPLETED && createActivityDto.productId) {
       const product = await this.productsService.findOne(createActivityDto.productId);

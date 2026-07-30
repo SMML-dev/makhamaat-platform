@@ -53,6 +53,9 @@ export class Activity {
   @Prop({ required: true })
   quantity: number;
 
+  @Prop({ default: 0 })
+  unitPrice: number;
+
   @Prop()
   orderNumber?: string;
 

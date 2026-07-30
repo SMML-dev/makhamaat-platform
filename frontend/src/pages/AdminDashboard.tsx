@@ -711,7 +711,7 @@ const AdminDashboard = () => {
     const totalRevenue = activities.reduce((acc, act) => {
       if (act.type === 'SALE' || act.type === 'EXPORT') {
         const product = products.find(p => p._id === (act.productId?._id || act.productId));
-        const price = act.price || product?.price || 0;
+        const price = act.unitPrice || product?.price || 0;
         return acc + (act.quantity * price);
       }
       return acc;
@@ -735,7 +735,7 @@ const AdminDashboard = () => {
     const getRevenue = (acts: any[]) => acts.reduce((acc, act) => {
       if (act.type === 'SALE' || act.type === 'EXPORT') {
         const product = products.find(p => p._id === (act.productId?._id || act.productId));
-        const price = act.price || product?.price || 0;
+        const price = act.unitPrice || product?.price || 0;
         return acc + (act.quantity * price);
       }
       return acc;
@@ -793,7 +793,7 @@ const AdminDashboard = () => {
           if (date.getMonth() === index && date.getFullYear() === currentYear) {
             if (act.type === 'SALE' || act.type === 'EXPORT') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
-              const price = act.price || product?.price || 0;
+              const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
             }
           }
@@ -816,7 +816,7 @@ const AdminDashboard = () => {
           if (actDate.toDateString() === day.toDateString()) {
             if (act.type === 'SALE' || act.type === 'EXPORT') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
-              const price = act.price || product?.price || 0;
+              const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
             }
           }
@@ -844,7 +844,7 @@ const AdminDashboard = () => {
           if (actDate.toDateString() === day.toDateString()) {
             if (act.type === 'SALE' || act.type === 'EXPORT') {
               const product = products.find(p => p._id === (act.productId?._id || act.productId));
-              const price = act.price || product?.price || 0;
+              const price = act.unitPrice || product?.price || 0;
               return acc + (act.quantity * price);
             }
           }

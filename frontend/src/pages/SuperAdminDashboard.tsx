@@ -648,7 +648,7 @@ const SuperAdminDashboard = () => {
         const actDate = new Date(act.createdAt);
         if (selectedPeriod === 'ALL' && actDate.getFullYear() !== currentYear) return;
         const monthIdx = actDate.getMonth();
-        const price = act.productId.price || 0;
+        const price = act.unitPrice || act.productId.price || 0;
         data[monthIdx].revenue += (act.quantity * price) / 1000000;
       }
     });
