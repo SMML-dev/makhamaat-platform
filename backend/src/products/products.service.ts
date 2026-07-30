@@ -19,17 +19,6 @@ export class ProductsService implements OnModuleInit {
     const createdProduct = new this.productModel(createProductDto);
     const savedProduct = await createdProduct.save();
 
-    if (actorId) {
-      await this.activitiesService.create({
-        type: ActivityType.PRODUCT_CREATED,
-        status: ActivityStatus.COMPLETED,
-        productId: savedProduct._id,
-        actorId: new Types.ObjectId(actorId),
-        quantity: 0,
-        notes: `Création du produit : ${savedProduct.name}`,
-      });
-    }
-
     return savedProduct;
   }
 
